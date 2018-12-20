@@ -1,0 +1,6 @@
+"active2" from [1970-01-01 04:30:00.000] to [1970-01-02 05:46:40.000] every [6 days 10 hours 10 minutes] inactive;
+"not active" at [1970-01-01 02:15:00.000] inactive;
+"not active " at [2018-12-10 10:47:34.899] inactive;
+"not active" from [1970-01-02 05:46:40.000] to [1970-01-02 11:20:00.000] every [5 days 5 hours] inactive;
+"active" at [1970-01-02 03:00:10.000];
+"active2" from [1970-01-02 03:00:10.000] to [1970-01-02 05:46:40.000] every [6 days 10 hours 10 minutes].
