@@ -7,7 +7,7 @@ import com.Kovalenko.lab1.model.TaskList;
 
 import java.io.*;
 import java.text.ParseException;
-import java.util.Date;
+import java.util.*;
 
 /**
  * Controller class of TaskManager
@@ -22,7 +22,7 @@ import java.util.Date;
  */
 public class Controller {
 
-    private TaskList taskList;
+    private ArrayTaskList taskList;
 
     /**
      *  Main method to start an application,
@@ -33,7 +33,6 @@ public class Controller {
      */
     public void run() {
         welcomeMessage();
-        chooseTaskListMenu();
         chooseTaskList();
     }
 
@@ -153,6 +152,7 @@ public class Controller {
      * In case of wrong input, user will be asked to retry.
      */
     private void chooseTaskList() {
+        chooseTaskListMenu();
         String inputChoice;
         boolean correctInput;
         do {
@@ -160,7 +160,7 @@ public class Controller {
             switch (inputChoice) {
                 case "1":
                     taskList = new ArrayTaskList();
-                    System.out.print("New empty list was created.");
+                    System.out.println("New empty list was created.");
                     taskListMain();
                     break;
                 case "2":
@@ -316,24 +316,347 @@ public class Controller {
     }
 
     /**
-     * Under construction
+     * Main menu, printed using {@link #menuUtil(String...)}
+     *
+     * Here user can choose what to do next with collection
+     *
      */
-    private void taskListMain() {
-        System.out.println("\n --- Main menu ---");
-        System.out.println(" - Please choose what do you want to do next \u2193 \n");
+    private void taskListMainMenu() {
+        System.out.println("\n---------- Main menu -----------");
+        System.out.println("\n - Please choose what do you want to do next \u2193 \n");
+        String menuItemViewTasks = "View all your tasks.";
+        String menuItemAddTask = "Add a new task to list.";
+        String menuItemRemoveTask = "Remove tasks from list.";
+        String menuItemEditTask = "Edit task in list.";
+        String menuItemViewCalendar = "View calendar.";
+        String menuItemEditNotifications = "Edit notifications.";
+
+        menuUtil(menuItemViewTasks, menuItemAddTask, menuItemRemoveTask, menuItemEditTask, menuItemViewCalendar, menuItemEditNotifications);
         //getCollection();
-        exit();
+        //exit();
     }
 
-    private void showTasks() {
+    /**
+     * Method for actual choosing what user wants to do with the loaded collection
+     * Available typing options: '1' - Viewing all tasks in the list
+     *
+     *                           '2' - Adding new task to the list
+     *
+     *                           '3' - Remove task from list
+     *
+     *                           '4' - Edit task in list
+     *
+     *                           '5' - View calendar
+     *
+     *                           '3' - Edit notifications
+     *
+     *                           'back', 'prev' - will return to previous menu
+     *
+     *                           'exit', 'quit' - will exit the application
+     *
+     *                           'menu' - will display current menu and will wait for user input
+     *
+     * In case of wrong input, user will be asked to retry.
+     */
+    private void taskListMain() {
+        taskListMainMenu();
+        String inputChoice;
+        boolean correctInput;
+        do {
+            inputChoice = getInput();
+            switch (inputChoice) {
+                case "1":
+                    //View all tasks
+                    viewTasks();
+                    taskListMainMenu();
+                    break;
+                case "2":
+                    //Add new task
+                    System.out.println("Add new task");
+                    break;
+                case "3":
+                    //Remove task from list
+                    removeTasks();
+                    break;
+                case "4":
+                    //Edit task in list
+                    System.out.println("Edit task in list");
+                    break;
+                case "5":
+                    //View calendar
+                    System.out.println("View calendar");
+                    break;
+                case "6":
+                    //Edit notifications
+                    System.out.println("Edit notifications");
+                    break;
+                case "menu":
+                    taskListMainMenu();
+                    break;
+                case "prev":
+                case "back":
+                    chooseTaskList();
+                    break;
+                case "exit":
+                    System.out.println("Saving changes, exiting...");
+                    exit();
+                    break;
+                case "quit":
+                    System.out.println("Saving changes, quiting...");
+                    exit();
+                    break;
+                default:
+                    System.out.print("Incorrect input, please retry.");
+            }
+            correctInput = true;
+        } while (correctInput);
+    }
 
+    /**
+     * Method for viewing current list of tasks
+     *
+     * If it is empty, there will be a message about it,
+     * if not, list will be displayed on the screen.
+     *
+     * After viewing user should press ENTER button,
+     * this will redirect him to previous menu {@link #taskListMain()}
+     */
+    private void viewTasks() {
+        if(checkIfEmptyCollection()) {
+            System.out.println("Your list of tasks is empty at the moment. Nothing to view.");
+        } else {
+            System.out.println("List of all tasks is displayed below.\n");
+            viewCollection();
+        }
+        System.out.println("\nHit ENTER to go to previous menu.");
+        waitForEnterButton();
+    }
+
+    /**
+     * Util method, waits for ENTER press, then returns
+     */
+    private void waitForEnterButton() {
+        Scanner scan = new Scanner(System.in);
+        scan.nextLine();
+    }
+
+    /**
+     * Method to check if collection is empty( i.e. has no task inside)
+     * {@link TaskList#size()}
+     *
+     * @return true,  if collection is empty
+     *         false, if there are any tasks in collection
+     * @see TaskList
+     */
+    private boolean checkIfEmptyCollection() {
+        return taskList.size() == 0;
+    }
+
+    /**
+     * Method to show remove menu to user,
+     * it will display all tasks description if list of tasks is not empty,
+     * otherwise user will be notified about it and proposed to hit ENTER key,
+     * which will return him to previous menu {@link #taskListMain()}.
+     *
+     * There is an option to delete several tasks at once if user enters task's
+     * menu indexes, separated by spaces. But still, this input will be validated.
+     *
+     */
+    private void removeTasks() {
+        if(checkIfEmptyCollection()) {
+            System.out.println("Your list of tasks is empty at the moment. Nothing to remove.");
+            System.out.println("\nHit ENTER to go to previous menu.");
+            waitForEnterButton();
+            taskListMain();
+        } else {
+            int[] indexesToRemoveTasksFrom = null;
+            removeTasksMenu();
+            String inputChoice;
+            boolean correctInput = false;
+            do {
+                inputChoice = getInput();
+                try {
+                    indexesToRemoveTasksFrom = parseNeededRemoveIndexes(inputChoice);
+                    checkForInvalidRemovalIndexes(indexesToRemoveTasksFrom);
+                } catch (NumberFormatException ex) {
+                    switch (inputChoice) {
+                        case "menu":
+                            removeTasksMenu();
+                            break;
+                        case "prev":
+                        case "back":
+                            taskListMain();
+                            break;
+                        case "exit":
+                            System.out.println("Saving changes, exiting...");
+                            exit();
+                            break;
+                        case "quit":
+                            System.out.println("Saving changes, quiting...");
+                            exit();
+                            break;
+                        default:
+                            System.out.print("Incorrect input, please retry.");
+                            correctInput = true;
+                            continue;
+                    }
+                } catch (IndexOutOfBoundsException ex) {
+                    System.out.print(ex.getMessage());
+                    indexesToRemoveTasksFrom = null;
+                    correctInput = true;
+                    continue;
+                }
+
+                if(indexesToRemoveTasksFrom != null) {
+                    removeTasksByGivenIndexes(indexesToRemoveTasksFrom);
+                }
+                correctInput = true;
+            } while (correctInput);
+        }
+    }
+
+    /**
+     * Menu, that will be displayed, when user wants to delete tasks from collection
+     *
+     * Tasks from collection will be displayed in following format:
+     *
+     * #1   Task description
+     * #2   Task description
+     * ...  ...
+     *
+     * Such output is formed in {@link #menuOutOfCollection(TaskList)} method.
+     *
+     * Remove logic relies on the fact that actual index of task in collection is (#i - 1),
+     */
+    private void removeTasksMenu() {
+        String[] collectionItemsAsMenu = menuOutOfCollection(taskList);
+        System.out.println("\n - Choose the number of a task you want to remove from list");
+        System.out.println("(Note, you can remove several tasks by typing their numbers separated by spaces\n" +
+                               "e.g. 1 3 5 - will remove tasks by number 1, 3 and 5 )\n");
+        menuUtil(collectionItemsAsMenu);
+    }
+
+    /**
+     * Method to form menu items from tasks in collection for their future deletion or editing.
+     *
+     * @param tasks collection of tasks, each task will be converted into string representation
+     *              and put into String array by corresponding index.
+     * @return String array, each element of which is corresponding task description in collection.
+     *
+     * @see TaskList
+     */
+    private String[] menuOutOfCollection(TaskList tasks) {
+        String[] collectionItemsAsMenu = new String[taskList.size()];
+        int index = 0;
+        for (Task task : tasks) {
+            collectionItemsAsMenu[index] = task.toString();
+            ++index;
+        }
+        return collectionItemsAsMenu;
+    }
+
+    /**
+     * Method to form int[] of indexes from user input that will be used to delete tasks from collection.
+     *
+     * @param input user's String input, which shows tasks that should be removed from collection,
+     *              in the format of tasks indexes in menu, separated by spaces
+     * @return int[] indexes, by which tasks will be deleted from collection
+     * @throws NumberFormatException in case of any parsing error from String input to int,
+     *                               using above defined format
+     */
+    private int[] parseNeededRemoveIndexes(String input) throws NumberFormatException {
+        String trimmedInput = input.trim().replaceAll(" +", " ");
+        String s[] = trimmedInput.split(" ");
+        int indexesToRemoveTasksFrom[] = new int[s.length];
+
+        try {
+            for(int i = 0 ; i < s.length ; i++) {
+                indexesToRemoveTasksFrom[i] = Integer.parseInt(s[i]);
+            }
+        } catch (NumberFormatException ex) {
+            throw ex;
+        }
+
+        return indexesToRemoveTasksFrom;
+    }
+
+    /**
+     * Method to validate parsed indexes formed by {@link #parseNeededRemoveIndexes(String)}
+     *
+     * @param removalIndexes int[] of tasks indexes, that will be used in removal process from collection
+     * @throws IndexOutOfBoundsException if validation was failed, so there is no tasks by given indexes in collection.
+     *                                   Keep in mind, that tasks in the menu are shown from 1 to i,
+     *                                   but we validate indexes shifting them 1 position to the left (i.e. i - 1).
+     *                                   User will be notified about wrong indexes by a message, containing all
+     *                                   wrong ones.
+     */
+    private void checkForInvalidRemovalIndexes(int[] removalIndexes) throws IndexOutOfBoundsException {
+        boolean invalidIndexDetected = false;
+        ArrayList<Integer> invalidIndexes = new ArrayList<>();
+        for(int i = 0; i < removalIndexes.length; i++) {
+            if (removalIndexes[i] < 1 || removalIndexes[i] > taskList.size()) {
+                invalidIndexDetected = true;
+                invalidIndexes.add(removalIndexes[i]);
+            }
+        }
+        if(invalidIndexDetected) {
+            throw new IndexOutOfBoundsException("There were invalid removal indexes in your input " + Collections.singletonList(invalidIndexes) + ", please retry. ");
+        }
+    }
+
+    /**
+     *  Method to confirm or cancel removal from collection.
+     *  User should enter 'y' - to confirm deletion, so {@link #removeByIndexesConfirmed(int[])} will be called
+     *
+     *                    'n',
+     *                    'back',
+     *                    'prev' - to cancel deletion, then there will be a redirect
+     *                             back to remove menu {@link #removeTasks()}
+     *
+     * @param indexes validated int[] of indexes that will be used to delete tasks from collection.
+     */
+    private void removeTasksByGivenIndexes(int[] indexes) {
+        System.out.println("Are you sure you want to remove tasks " + Arrays.toString(indexes)
+                               + "? (This action can't be undone.)\n "
+                               + " - To confirm - type 'y', to cancel - type 'n' ");
+        String inputChoice;
+        boolean correctInput = false;
+        do {
+            inputChoice = getInput();
+            String trimmedInput = inputChoice.trim();
+            switch (trimmedInput) {
+                case "y":
+                    removeByIndexesConfirmed(indexes);
+                    System.out.println(" --- Tasks were deleted successfully! --- ");
+                    removeTasks();
+                    break;
+                case "n":
+                case "back":
+                case "prev":
+                    removeTasks();
+                    break;
+                    default:
+                        System.out.print("To confirm removal please type 'y', to cancel it - type 'n'");
+            }
+            correctInput = true;
+        } while (correctInput);
+    }
+
+    /**
+     *
+     * Method to completely delete tasks from collection, this action can't be undone.
+     *
+     * @param indexes indexes, by which tasks will be permanently deleted from collection
+     */
+    private void removeByIndexesConfirmed(int[] indexes) {
+        int offset = 0;
+        for (int index : indexes) {
+            taskList.remove(index - 1 - offset);
+            offset++;
+        }
     }
 
     private void editNotifications() {}
-
-    private void removeTask() {
-
-    }
 
     private void editTask() {
 
@@ -359,7 +682,7 @@ public class Controller {
         System.exit(0);
     }
 
-    private void getCollection() {
+    private void viewCollection() {
         for (Task task : taskList) {
             System.out.println(task);
         }
