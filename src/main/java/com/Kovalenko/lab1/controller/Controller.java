@@ -1,12 +1,10 @@
 package com.Kovalenko.lab1.controller;
 
-import com.Kovalenko.lab1.model.ArrayTaskList;
-import com.Kovalenko.lab1.model.Task;
-import com.Kovalenko.lab1.model.TaskIO;
-import com.Kovalenko.lab1.model.TaskList;
+import com.Kovalenko.lab1.model.*;
 
 import java.io.*;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -384,7 +382,7 @@ public class Controller {
                     break;
                 case "5":
                     //View calendar
-                    System.out.println("View calendar");
+                    calendar();
                     break;
                 case "6":
                     //Edit notifications
@@ -656,19 +654,93 @@ public class Controller {
         }
     }
 
+    private void calendar() {
+        Date startDate;
+        Date endDate;
+        if(checkIfEmptyCollection()) {
+            System.out.println("Your list of tasks is empty at the moment. Can't create calendar");
+            System.out.println("\nHit ENTER to go to previous menu.");
+            waitForEnterButton();
+            taskListMain();
+        } else {
+            boolean correctInput = true;
+            do {
+                //System.out.println("in enter section");
+                startDate = getDateOrGoBack("start date");
+                endDate = getDateOrGoBack("end date");
+                if(endDate.before(startDate)) {
+                    correctInput = false;
+                    System.out.println("End date is before start date, please retry your input.");
+                }
+            } while (!correctInput);
+            renderCalendar(startDate, endDate);
+        }
+
+    }
+
+    private Date getDateOrGoBack(String name) {
+        System.out.print("\nPlease enter " + name + " for calendar in following format 'yyyy-mm-dd'\n");
+        String inputChoice;
+        Date actualDate = new Date();
+        boolean correctInput;
+        do {
+            correctInput = true;
+            inputChoice = getInput();
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                sdf.setLenient(false);
+                actualDate = sdf.parse(inputChoice.trim());
+            } catch (ParseException ex) {
+                correctInput = false;
+                switch (inputChoice) {
+                    case "menu":
+                        System.out.print("Please enter " + name + " for calendar in following format 'YYYY-mm-dd'");
+                        break;
+                    case "prev":
+                    case "back":
+                        taskListMain();
+                        break;
+                    case "exit":
+                        System.out.println("Saving changes, exiting...");
+                        exit();
+                        break;
+                    case "quit":
+                        System.out.println("Saving changes, quiting...");
+                        exit();
+                        break;
+                    default:
+                        System.out.print("You've entered " + name + " in invalid format, please retry.");
+                }
+            }
+            if(correctInput) {
+                return actualDate;
+            }
+        } while (true);
+    }
+
+    private void renderCalendar(Date from, Date to) {
+        System.out.println("Tasks, contained between start: "
+                               + from.toString() + " and end: "
+                               + to.toString() + " dates are shown below.\n");
+        SortedMap<Date, Set<Task>> calendar = Tasks.calendar(taskList, from, to);
+        calendar.forEach((K, V) -> {
+            System.out.println(" --- " + K + " --- ");
+            for (Task task : V) {
+                System.out.println(task);
+            }
+            System.out.println(" ------------------------------------\n");
+        } );
+        System.out.println("Hit ENTER to go to previous menu.");
+        waitForEnterButton();
+        taskListMain();
+    }
+
     private void editNotifications() {}
 
     private void editTask() {
 
     }
 
-    private void calendar() {
-
-    }
-
-    private Date selectDates() {
-      return null;
-    }
 
     private void addTask() {
 

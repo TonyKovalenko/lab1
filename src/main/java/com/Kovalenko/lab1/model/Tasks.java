@@ -46,7 +46,7 @@ public class Tasks {
      * @param tasks TaskList, should impement Iterable interface
      * @param from  Date, from which to search for active Tasks
      * @param to    Date, to which to search for active Tasks
-     * @return
+     * @return calendar for tasks, which are scheduled between {@code from} and {@code to} dates
      */
     public static SortedMap<Date, Set<Task>> calendar(Iterable<Task> tasks, Date from, Date to) {
         SortedMap<Date, Set<Task>> calendarToReturn = new TreeMap<>();
@@ -57,10 +57,10 @@ public class Tasks {
         Iterator<Task> iter = tasks.iterator();
         while(iter.hasNext()) {
             currentTask = iter.next();
-            if(currentTask.isActive()) {
+            if(currentTask.isActive() && currentTask.nextTimeAfter(from) != null) {
                 while (Task.compareDates(currentTask.nextTimeAfter(currentTime), to) <= 0) {
                     timeToAdd = currentTask.nextTimeAfter(currentTime);
-                    if(calendarToReturn.get(timeToAdd) != null) {
+                    if(timeToAdd != null && calendarToReturn.get(timeToAdd) != null) {
                        Set<Task> newSet = calendarToReturn.get(timeToAdd);
                        newSet.add(currentTask);
                        calendarToReturn.put(timeToAdd, newSet);

@@ -88,7 +88,7 @@ public class Task implements Cloneable, Serializable {
             this.time = start;
             this.start = start;
             this.end = end;
-            this.repeat = repeat * 1000;
+            this.repeat = repeat;
             this.repeated = true;
             this.active = false;
         } else {
@@ -133,6 +133,14 @@ public class Task implements Cloneable, Serializable {
     }
 
     /**
+     * Gets the repeat interval in milliseconds for Task notification
+     * @return end repeat interval for repeatable Task, zero for non repeatable
+     */
+    public int getMillisecondsRepeatInterval() {
+        return this.repeat * 1000;
+    }
+
+    /**
      * Checks if the Task is repeated
      * @return true if task is repeatable, false if task is non repeatable
      */
@@ -163,9 +171,9 @@ public class Task implements Cloneable, Serializable {
         if(this.repeated && this.start.getTime() > time.getTime()) {
             return this.time;
         } else if (this.repeated && this.start.getTime() <= time.getTime()) {
-            for (long i = this.start.getTime(); i < this.end.getTime(); i += repeat) {
-                if( (time.getTime() >= i) && (time.getTime() < i + repeat) ) {
-                    return ( i + repeat > this.end.getTime() ) ? null : new Date(i + repeat);
+            for (long i = this.start.getTime(); i < this.end.getTime(); i += getMillisecondsRepeatInterval()) {
+                if( (time.getTime() >= i) && (time.getTime() < i + getMillisecondsRepeatInterval()) ) {
+                    return ( i + getMillisecondsRepeatInterval() > this.end.getTime() ) ? null : new Date(i + getMillisecondsRepeatInterval());
                     //return new Date(i + repeat);
                 }
             }
@@ -214,7 +222,7 @@ public class Task implements Cloneable, Serializable {
         } else if ( !repeated ) {
             return "Task \"" + this.title + "\" at " + this.time;
         } else {
-            return "Task \"" + this.title + "\" from " + this.start + " to " + this.end + " every " + this.repeat/1000 + " seconds";
+            return "Task \"" + this.title + "\" from " + this.start + " to " + this.end + " every " + this.repeat + " seconds";
         }
     }
 
@@ -236,13 +244,13 @@ public class Task implements Cloneable, Serializable {
 
         Task castedTask = (Task) task;
         return ( this.getTitle().equals(castedTask.getTitle())
-                    && castedTask.isActive() == this.isActive()
-                    && castedTask.isRepeated() == this.isRepeated()
-                    && castedTask.getTime().getTime() == (this.getTime().getTime())
-                    && castedTask.getStartTime().getTime() == (this.getStartTime().getTime())
-                    && castedTask.getEndTime().getTime() == (this.getEndTime().getTime())
-                    && castedTask.getRepeatInterval() == this.getRepeatInterval()
-                    && castedTask.hashCode() == this.hashCode());
+                     && castedTask.isActive() == this.isActive()
+                     && castedTask.isRepeated() == this.isRepeated()
+                     && castedTask.getTime().getTime() == (this.getTime().getTime())
+                     && castedTask.getStartTime().getTime() == (this.getStartTime().getTime())
+                     && castedTask.getEndTime().getTime() == (this.getEndTime().getTime())
+                     && castedTask.getRepeatInterval() == this.getRepeatInterval()
+                     && castedTask.hashCode() == this.hashCode());
     }
 
     /**

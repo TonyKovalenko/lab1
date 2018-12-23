@@ -1,3 +1,4 @@
+
 package com.Kovalenko.lab1.model;
 
 import java.io.*;
@@ -45,7 +46,7 @@ public class TaskIO {
                 dos.writeInt(currentTask.getTitle().length()); // title length
                 dos.writeChars(currentTask.getTitle());        // title in byte array
                 dos.writeInt(currentTask.isActive() ? 1 : 0);  // 0 or 1 if active or not
-                dos.writeInt(currentTask.getRepeatInterval() / 1000); // write repeat interval
+                dos.writeInt(currentTask.getRepeatInterval()); // write repeat interval
                 if(currentTask.isRepeated()) {
                     dos.writeLong(currentTask.getStartTime().getTime()); // task is repeated, so put start time
                     dos.writeLong(currentTask.getEndTime().getTime());   // and end time
@@ -368,7 +369,7 @@ public class TaskIO {
             throw new NumberFormatException("Integer parse error while parsing repeat interval");
         }
 
-        return ((days * 86400) + (hours * 3600) + (minutes * 60) + seconds) / 1000;
+        return ((days * 86400) + (hours * 3600) + (minutes * 60) + seconds);
     }
 
     /**

@@ -10,7 +10,6 @@ public class App {
         myController.run();
     }
 
-
     public static void main( String[] args ) {
         App.start();
     }
