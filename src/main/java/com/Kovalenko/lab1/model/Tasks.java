@@ -51,16 +51,20 @@ public class Tasks {
     public static SortedMap<Date, Set<Task>> calendar(Iterable<Task> tasks, Date from, Date to) {
         SortedMap<Date, Set<Task>> calendarToReturn = new TreeMap<>();
         Task currentTask;
-        Date timeToAdd, currentTime = from;
+        Date timeToAdd, currentFromTime = from;
         Set<Task> setOfTasks = new HashSet<>();
 
         Iterator<Task> iter = tasks.iterator();
         while(iter.hasNext()) {
             currentTask = iter.next();
-            if(currentTask.isActive() && currentTask.nextTimeAfter(from) != null) {
-                while (Task.compareDates(currentTask.nextTimeAfter(currentTime), to) <= 0) {
-                    timeToAdd = currentTask.nextTimeAfter(currentTime);
-                    if(timeToAdd != null && calendarToReturn.get(timeToAdd) != null) {
+            if(currentTask.isActive() && currentTask.getEndTime().after(from)) {
+                while (Task.compareDates(currentTask.nextTimeAfter(currentFromTime), to) <= 0) {
+                    timeToAdd = currentTask.nextTimeAfter(currentFromTime);
+                    if(timeToAdd == null) {
+                        break;
+                    }
+                    System.out.println(timeToAdd);
+                    if(calendarToReturn.get(timeToAdd) != null) {
                        Set<Task> newSet = calendarToReturn.get(timeToAdd);
                        newSet.add(currentTask);
                        calendarToReturn.put(timeToAdd, newSet);
@@ -69,9 +73,9 @@ public class Tasks {
                         calendarToReturn.put(timeToAdd, setOfTasks);
                     }
                     if(!currentTask.isRepeated()) { break;}
-                    currentTime = new Date(timeToAdd.getTime());
+                    currentFromTime = new Date(timeToAdd.getTime());
                 }
-                currentTime = from;
+                currentFromTime = from;
                 setOfTasks = new HashSet<>();
             }
 

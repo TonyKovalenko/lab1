@@ -360,7 +360,7 @@ public class TaskIO {
                         minutes = Integer.parseInt(s.substring(0, s.indexOf(" ")));
                         break;
                     case "s":
-                        minutes = Integer.parseInt(s.substring(0, s.indexOf(" ")));
+                        seconds = Integer.parseInt(s.substring(0, s.indexOf(" ")));
                         break;
                 }
             }

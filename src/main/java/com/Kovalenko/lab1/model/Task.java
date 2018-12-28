@@ -21,7 +21,7 @@ public class Task implements Cloneable, Serializable {
     private Date time;
     private Date start;
     private Date end;
-    private int repeat;
+    private int repeatInterval;
 
     /**
      * Gets a title of a Task
@@ -35,7 +35,7 @@ public class Task implements Cloneable, Serializable {
      * @param title  desired title for the Task
      */
     public void setTitle(String title) throws IllegalArgumentException {
-        if (title == null || title.trim().equals("") || title.indexOf('\n') != -1) {
+        if (title == null /*|| title.trim().equals("")*/ || title.indexOf('\n') != -1) {
             //System.out.println("You may want to change a name of task, as it consists of spaces only, or has newline symbols in it");
             throw new IllegalArgumentException("You may want to change a name of task, as it empty(null), or consists of spaces only, or has newline symbols in it");
         }
@@ -52,14 +52,14 @@ public class Task implements Cloneable, Serializable {
 
     /**
      * Sets the Task active
-     * @param active  state for the Task, true for making it active, false for making it disabled
+     * @param active  state for the Task, true for making it active, false for making it inactive
      */
     public void setActive(boolean active) {
         this.active = active;
     }
 
     /**
-     * Sets the time of notification for Task, Task becomes disabled
+     * Sets the time of notification for Task, Task becomes inactive
      * If called for repeatable Task makes it non repeatable
      * @param time  time for Task notification
      */
@@ -68,7 +68,7 @@ public class Task implements Cloneable, Serializable {
             this.time = time;
             this.start = time;
             this.end = time;
-            this.repeat = 0;
+            this.repeatInterval = 0;
             this.repeated = false;
             this.active = false;
         } else {
@@ -77,22 +77,22 @@ public class Task implements Cloneable, Serializable {
     }
 
     /**
-     * Sets the time of notification for Task, Task becomes disabled
+     * Sets the time of notification for Task, Task becomes inactive
      * If called for non repeatable Task makes it repeatable
      * @param start    start time for Task notification
      * @param end	  end time for Task notification
-     * @param repeat  repeat period for Task notification
+     * @param repeat  repeatInterval period for Task notification
      */
     public void setTime(Date start, Date end, int repeat) throws IllegalArgumentException{
         if (( end.getTime() > start.getTime() ) && ( repeat > 0 ) && (start.getTime() >= 0)) {
             this.time = start;
             this.start = start;
             this.end = end;
-            this.repeat = repeat;
+            this.repeatInterval = repeat;
             this.repeated = true;
             this.active = false;
         } else {
-            throw new IllegalArgumentException("Invalid arguments, repeat time should be more than zero, end time should be greater then start");
+            throw new IllegalArgumentException("Invalid arguments, repeatInterval time should be more than zero, end time should be greater then start");
         }
     }
 
@@ -125,19 +125,29 @@ public class Task implements Cloneable, Serializable {
     }
 
     /**
-     * Gets the repeat interval for Task notification
-     * @return end repeat interval for repeatable Task, zero for non repeatable
+     * Sets the repeatInterval interval for Task notification
+     * does nothing fro non-repeated Task
      */
-    public int getRepeatInterval() {
-        return this.repeat;
+    public void setRepeatInterval(int repeatInterval) {
+        if(this.isRepeated()) {
+            this.repeatInterval = repeatInterval;
+        }
     }
 
     /**
-     * Gets the repeat interval in milliseconds for Task notification
-     * @return end repeat interval for repeatable Task, zero for non repeatable
+     * Gets the repeatInterval interval for Task notification
+     * @return end repeatInterval interval for repeatable Task, zero for non repeatable
+     */
+    public int getRepeatInterval() {
+        return this.repeatInterval;
+    }
+
+    /**
+     * Gets the repeatInterval interval in milliseconds for Task notification
+     * @return end repeatInterval interval for repeatable Task, zero for non repeatable
      */
     public int getMillisecondsRepeatInterval() {
-        return this.repeat * 1000;
+        return this.repeatInterval * 1000;
     }
 
     /**
@@ -153,7 +163,7 @@ public class Task implements Cloneable, Serializable {
      * @param time  after which to search next Task notification  time
      * @return next time for Task notification , -1 if the Task is not active or it is non repeatable or if there will be no Task notification  after specified time
      */
-    public Date nextTimeAfter(Date time) throws IllegalArgumentException{
+    public Date nextTimeAfter(Date time) throws IllegalArgumentException {
         if(time == null || time.getTime() < 0) {
             throw new IllegalArgumentException("Time after which to search for next notification cannot be less than zero or null");
         }
@@ -174,10 +184,10 @@ public class Task implements Cloneable, Serializable {
             for (long i = this.start.getTime(); i < this.end.getTime(); i += getMillisecondsRepeatInterval()) {
                 if( (time.getTime() >= i) && (time.getTime() < i + getMillisecondsRepeatInterval()) ) {
                     return ( i + getMillisecondsRepeatInterval() > this.end.getTime() ) ? null : new Date(i + getMillisecondsRepeatInterval());
-                    //return new Date(i + repeat);
+                    //return new Date(i + repeatInterval);
                 }
             }
-            //int nextTime = ((( time + this.start ) / this.repeat ) * this.repeat ) + this.start;
+            //int nextTime = ((( time + this.start ) / this.repeatInterval ) * this.repeatInterval ) + this.start;
             //return nextTime > this.end ? -1 : nextTime;
         }
         return null;
@@ -204,11 +214,11 @@ public class Task implements Cloneable, Serializable {
      * @param title     title for the Task
      * @param start    start time for repeatable Task
      * @param end      end time for repeatable Task
-     * @param repeat  repeat interval for repeatable Task
+     * @param repeatInterval  repeatInterval interval for repeatable Task
      */
-    public Task(String title, Date start, Date end, int repeat) throws IllegalArgumentException{
+    public Task(String title, Date start, Date end, int repeatInterval) throws IllegalArgumentException{
         this.setTitle(title);
-        this.setTime(start, end, repeat);
+        this.setTime(start, end, repeatInterval);
     }
 
     /**
@@ -222,7 +232,7 @@ public class Task implements Cloneable, Serializable {
         } else if ( !repeated ) {
             return "Task \"" + this.title + "\" at " + this.time;
         } else {
-            return "Task \"" + this.title + "\" from " + this.start + " to " + this.end + " every " + this.repeat + " seconds";
+            return "Task \"" + this.title + "\" from " + this.start + " to " + this.end + " every " + this.repeatInterval + " seconds";
         }
     }
 
@@ -264,7 +274,7 @@ public class Task implements Cloneable, Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(title, active, repeated, time, start, end, repeat);
+        return Objects.hash(title, active, repeated, time, start, end, repeatInterval);
     }
 
     /**

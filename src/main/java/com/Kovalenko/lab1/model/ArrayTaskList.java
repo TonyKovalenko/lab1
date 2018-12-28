@@ -78,7 +78,9 @@ public class ArrayTaskList extends TaskList implements Cloneable, Iterable<Task>
         } else {
             Task [] newTaskArray = new Task[this.taskArray.length - 1];
             System.arraycopy(this.taskArray, 0, newTaskArray, 0, index);
-            System.arraycopy(this.taskArray, index + 1, newTaskArray, index, this.size() - 1);
+            if(index != lastTaskIndex) {
+                System.arraycopy(this.taskArray, index + 1, newTaskArray, index, this.size() - 1);
+            }
             this.taskArray = newTaskArray.clone();
             --lastTaskIndex;
             return true;
