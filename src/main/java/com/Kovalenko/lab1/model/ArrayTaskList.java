@@ -18,6 +18,7 @@ public class ArrayTaskList extends TaskList implements Cloneable, Iterable<Task>
     public static final int DEFAULT_ARRAY_SIZE = 10;
     protected Task [] taskArray;
 
+
     static {
         createdTaskArraysTotalCount = 0;
     }

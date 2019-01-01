@@ -1,18 +1,20 @@
 package com.Kovalenko.lab1.controller;
 
 import com.Kovalenko.lab1.model.*;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Controller class of TaskManager
  *
  * @author Anton Kovalenko
  * @version 1.1
- * @since 19.12.2018
+ * @since 1.8
  *
  * @see Task
  * @see TaskList
@@ -24,7 +26,7 @@ public class Controller {
      * Enum that represents different menus, available to user,
      * used while routing between one another.
      */
-    enum Menus {
+    private enum Menus {
         CHOOSE_TASKLIST,
         TASKLIST_MAIN,
         REMOVE_TASKS,
@@ -36,9 +38,37 @@ public class Controller {
         GET_TITLE,
         CHANGE_TASK_STATE,
         GET_REPEAT_INTERVAL,
+        EDIT_NOTIFICATIONS,
+        EXIT,
         VOID
     }
-    private ArrayTaskList taskList;
+
+    private static Logger log = Logger.getLogger(Controller.class.getName());
+
+    private volatile ArrayTaskList taskList;
+    private static final String DEFAULT_STORAGE_FILE_NAME = "myTasks.txt";
+    private boolean notificationsAreEnabled;
+    private volatile Boolean listMutated;
+    private NotificationsManager notifier;
+
+    public Controller() {
+        listMutated = false;
+        notifier = new NotificationsManager();
+    }
+
+    public TaskList getTaskList() {
+        return taskList;
+    }
+
+    public boolean getListMutated() {
+        return listMutated;
+    }
+
+    public void setListMutated(boolean value) {
+        synchronized (this) {
+            listMutated = value;
+        }
+    }
 
     /**
      *  Main method to start an application,
@@ -47,6 +77,8 @@ public class Controller {
      *  to {@link #chooseTaskList()} method
      */
     public void run() {
+        log.info("App started.");
+        notificationsAreEnabled = loadNotificationsState();
         welcomeMessage();
         chooseTaskList();
     }
@@ -90,14 +122,15 @@ public class Controller {
         System.out.print("\n>>> Your input: ");
         String input = "";
         BufferedReader buff  = new BufferedReader(new InputStreamReader(System.in));
-        try {
-            input = buff.readLine();
-        } catch (IOException e) {
-            System.out.print("! Cannot read input because of internal error, try retrying the input.");
-        }
-        if(input == null) {
-            System.out.println("! Null was returned when reading user's input");
-        }
+        do {
+            try {
+                input = buff.readLine();
+            } catch (IOException e) {
+                log.error("NULL returned from input stream.", e);
+                System.out.print("! Cannot read input because of internal error, please retry the input.");
+            }
+        } while (input == null);
+
         return input.trim();
     }
 
@@ -142,12 +175,15 @@ public class Controller {
                 case "1":
                     taskList = new ArrayTaskList();
                     System.out.println("New empty list was created.");
+                    log.info("User created new empty list of tasks.");
                     taskListMain();
                     break;
                 case "2":
+                    log.info("User tried to load list of tasks from custom file.");
                     loadFromUserSpecifiedFile();
                     taskListMain();
                 case "3":
+                    log.info("User tried to load list from last saved file.");
                     loadFromLastSavedFile();
                     taskListMain();
                     break;
@@ -187,36 +223,39 @@ public class Controller {
      * @see TaskIO
      */
     private void loadFromLastSavedFile() {
-        final String defaultStorageFileName = "myTasks.txt";
-        File defaultStorageFile = new File(defaultStorageFileName);
+        File defaultStorageFile = new File(DEFAULT_STORAGE_FILE_NAME);
         boolean errorHappened = false;
         taskList = new ArrayTaskList();
         try {
             TaskIO.readText(taskList, defaultStorageFile);
         } catch (FileNotFoundException ex) {
+            log.info("Last saved file was not found(either this is the first launch or it was accidentally deleted outside the application).", ex);
             errorHappened = true;
             try {
                 if (defaultStorageFile.createNewFile()) {
-                    makeEmptyFileByName(defaultStorageFileName);
+                    makeEmptyFileByName(DEFAULT_STORAGE_FILE_NAME);
                     System.out.println("! Seems like the last saved file is missing, "
                                            + "so new empty file was created and list of tasks is now empty");
                 }
-            } catch (IOException ignored) {
-
+            } catch (IOException ioe) {
+                log.fatal("Exception while creating new empty default storage file.", ioe);
             }
         } catch (ParseException ex) {
             errorHappened = true;
             taskList = new ArrayTaskList();
-            makeEmptyFileByName(defaultStorageFileName);
+            makeEmptyFileByName(DEFAULT_STORAGE_FILE_NAME);
             System.out.println("! Seems like the content of last saved file is corrupted, "
                                 + "so new empty file was created and list of tasks is now empty");
+            log.warn("Last saved file was corrupted outside the application. File was emptied and new list of tasks was created", ex);
         } catch (IOException ex) {
             errorHappened = true;
             System.out.println("! Error happened while reading from file, list of tasks is now empty");
             taskList = new ArrayTaskList();
+            log.warn("There was an exception, while reading from default storage file to list of tasks, empty collection was created.", ex);
         }
         if(!errorHappened) {
             System.out.println("File was loaded successfully! ");
+            log.info("Last saved default storage file was loaded successfully.");
         }
     }
 
@@ -234,7 +273,8 @@ public class Controller {
             PrintWriter writer = new PrintWriter(defaultFile);
             writer.print("");
             writer.close();
-        } catch (IOException ignored) {
+        } catch (IOException ex) {
+            log.fatal("Exception happened, while emptying or creating new file: " + name, ex);
         }
     }
 
@@ -273,12 +313,15 @@ public class Controller {
             TaskIO.readText(taskList, new File(inputtedFilePath));
         } catch (FileNotFoundException ex) {
             System.out.println("\n! Sorry, but the specified file was not found. Returning you to previous menu.");
+            log.info("User specified nonexistent file to load tasks from.", ex);
             errorHappened = true;
         } catch (ParseException ex) {
             System.out.println("\n! Sorry, but the specified file contains incorrect tasks format inside. Returning you to previous menu.");
+            log.info("User's specified file contained incorrect task format.", ex);
             errorHappened = true;
         } catch (IOException ex) {
             System.out.println("\n! Sorry, the specified file can't be read properly. Returning you to previous menu.");
+            log.warn("User's specified file was not read correctly.", ex);
             errorHappened = true;
         } finally {
             if(errorHappened){
@@ -286,6 +329,7 @@ public class Controller {
             }
         }
         System.out.println("File was loaded successfully.");
+        log.info("User specified file aws loaded successfully.");
     }
 
     /**
@@ -331,6 +375,7 @@ public class Controller {
      */
     private void taskListMain() {
         showTaskListMainMenu();
+        pokeNotificationsManager(notificationsAreEnabled);
         String inputChoice;
         do {
             inputChoice = getTrimmedInput();
@@ -358,7 +403,7 @@ public class Controller {
                     break;
                 case "6":
                     //Edit notifications
-                    System.out.println("Edit notifications");
+                    editNotifications();
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.TASKLIST_MAIN, Menus.VOID, "");
@@ -372,17 +417,30 @@ public class Controller {
      * Method for viewing current list of tasks
      *
      * If it is empty, there will be a message about it,
-     * if not, list of tasks will be displayed on the screen.
+     * if not, list of tasks will be displayed on the screen by using {@link #viewCollection()}.
      *
      * After viewing user should press ENTER button,
      * this will redirect him to previous menu by calling {@link #showChooseTaskListMenu()}
      */
     private void viewTasks() {
         checkIfEmptyCollectionThenStepOut("Nothing to view.");
-        System.out.println("----------- View menu -----------");
+        System.out.println("\n----------- View menu -----------\n");
         System.out.println("List of all tasks is displayed below.\n");
         viewCollection(); //will print collection as menu using menuUtil() method
         waitForEnterButton();
+    }
+
+    /**
+     * Method for viewing list of task as a menu, using {@link #menuUtil(String...)} method.
+     */
+    private void viewCollection() {
+        String [] taskListAsMenu = new String[taskList.size()];
+        int i = 0;
+        for (Task task : taskList) {
+            taskListAsMenu[i] = task.toString();
+            ++i;
+        }
+        menuUtil(taskListAsMenu);
     }
 
     /**
@@ -421,7 +479,6 @@ public class Controller {
      */
     private void removeTasks() {
         checkIfEmptyCollectionThenStepOut("Nothing to remove.");
-        System.out.println("----------- Remove menu -----------");
         int[] indexesToRemoveTasksFrom = null;
         showRemoveTasksMenu();
         String inputChoice;
@@ -434,11 +491,13 @@ public class Controller {
                     boolean routed = routeIfControlWord(inputChoice, Menus.REMOVE_TASKS, Menus.VOID , "");
                     if(!routed) {
                         System.out.print("Incorrect input, please retry.");
+                        log.info("Invalid index in user's input while removing tasks", ex);
                         continue;
                     }
             } catch (IndexOutOfBoundsException ex) {
                 System.out.print(ex.getMessage());
                 indexesToRemoveTasksFrom = null;
+                log.info("Index out of bounds in user's input while removing tasks", ex);
                 continue;
             }
 
@@ -462,6 +521,7 @@ public class Controller {
      * Remove logic relies on the fact that actual index of task in collection is (#ofSelectedTask - 1),
      */
     private void showRemoveTasksMenu() {
+        System.out.println("----------- Remove menu -----------");
         String[] collectionItemsAsMenu = menuItemsOutOfCollection(taskList);
         System.out.println("\n - Choose the number of a task you want to remove from list");
         System.out.println("(Note, you can remove several tasks by typing their numbers separated by spaces\n" +
@@ -559,8 +619,12 @@ public class Controller {
             String trimmedInput = inputChoice;
             switch (trimmedInput) {
                 case "y":
-                    removeByIndexesConfirmed(indexes);
+                    synchronized (this) {
+                        removeByIndexesConfirmed(indexes);
+                        setListMutated(true);
+                    }
                     System.out.println(" --- Tasks were deleted successfully! --- ");
+                    log.info("User successfully deleted tasks from list.");
                     removeTasks();
                     break;
                 case "n":
@@ -616,6 +680,7 @@ public class Controller {
             }
         } while (!correctInput);
             renderCalendar(startDate, endDate);
+            log.info("User successfully rendered calendar for specified dates.");
         }
 
     /**
@@ -640,6 +705,12 @@ public class Controller {
             correctInput = true;
             inputChoice = getTrimmedInput();
             try {
+                String pattern = "^\\d{4}-\\d{2}-\\d{2}(\\s\\d{2}:\\d{2}:\\d{2})?$";
+                boolean matches = Pattern.matches(pattern, inputChoice);
+                if(!matches) {
+                    log.info("Invalid date format was inputted." + inputChoice);
+                    throw new ParseException("Date wasn't matched with the pattern", -1);
+                }
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 if (inputChoice.indexOf(':') == 13) {
                     sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -647,6 +718,7 @@ public class Controller {
                 sdf.setLenient(false);
                 actualDate = sdf.parse(inputChoice);
             } catch (ParseException ex) {
+                //log.debug("Probable unexpected ParseException if pattern was matched.", ex);
                 correctInput = false;
                 boolean routed = routeIfControlWord(inputChoice, Menus.GET_DATE, stepOutTo, message, indexIfEditing);
                 //depending on the menu, predefined statements can route to different menus, so we use above method
@@ -774,6 +846,7 @@ public class Controller {
         }
         System.out.println("Your task was successfully added!");
         waitForEnterButton();
+        log.info("New task was added to list successfully.");
         taskListMain();
     }
 
@@ -824,6 +897,7 @@ public class Controller {
                 try {
                     interval = Integer.parseInt(inputChoice);
                 } catch (NumberFormatException ex) {
+                    log.info("Invalid repeat interval format in user's input.", ex);
                     System.out.println("You've entered repeat interval in wrong format, please retry.");
                     continue;
                 }
@@ -840,7 +914,6 @@ public class Controller {
      */
     private void editTaskList() {
         checkIfEmptyCollectionThenStepOut("Nothing to edit.");
-        System.out.println("----------- Edit menu -----------");
         editTaskMenu();
         String inputChoice;
         boolean routed = false;
@@ -850,6 +923,7 @@ public class Controller {
             try {
                 indexToEditTask = checkForValidEditIndex(inputChoice);
             } catch (NumberFormatException|IndexOutOfBoundsException ex) {
+                log.info("Invalid edit indexes in user's input" + ex);
                 routed = routeIfControlWord(inputChoice, Menus.EDIT_TASK_LIST, Menus.VOID, "");
                 if(!routed) {
                     System.out.println(ex.getMessage());
@@ -875,6 +949,7 @@ public class Controller {
      * Edit logic relies on the fact that actual index of task in collection is (#i - 1),
      */
     private void editTaskMenu() {
+        System.out.println("----------- Edit menu -----------");
         String[] collectionItemsAsMenu = menuItemsOutOfCollection(taskList);
         System.out.println("\n - Choose the number of a task list that you want to edit\n");
         menuUtil(collectionItemsAsMenu);
@@ -944,21 +1019,37 @@ public class Controller {
             switch (inputChoice) {
                 case "1": //Edit the title
                     String newTitle = getTitleOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
-                    editedTask.setTitle(newTitle);
+                    synchronized (this) {
+                        editedTask.setTitle(newTitle);
+                        setListMutated(true);
+                    }
+                    log.info("Task title was edited successfully.");
                     editTaskByIndex(index);
                     break;
                 case "2": //Edit time
-                    editStartAndEndTimes(editedTask, index);
+                    synchronized (this) {
+                        editStartAndEndTimes(editedTask, index);
+                        setListMutated(true);
+                    }
+                    log.info("Task times was edited successfully.");
                     editTaskByIndex(index);
                     break;
                 case "3": //Change repeat interval
                     int newRepeatInterval = getRepeatIntervalOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
-                    editedTask.setRepeatInterval(newRepeatInterval);
+                    synchronized (this) {
+                        editedTask.setRepeatInterval(newRepeatInterval);
+                        setListMutated(true);
+                    }
+                    log.info("Task repeat interval was edited successfully.");
                     System.out.println("Repeat interval was edited successfully!");
                     editTaskByIndex(index);
                     break;
                 case "4": //Change active state
-                    editChangeActiveState(editedTask);
+                    synchronized (this) {
+                        editChangeActiveState(editedTask);
+                        setListMutated(true);
+                    }
+                    log.info("Task state was edited successfully.");
                     editTaskByIndex(index);
                     break;
                 default:
@@ -1011,7 +1102,11 @@ public class Controller {
                 System.out.println("\n! END date [" + newTaskEnd + "] should be after START date [" + newTaskStart + "], please retry your input.");
             }
         } while (newTaskStart.after(newTaskEnd));
-        editedTask.setTime(newTaskStart, newTaskEnd, editedTask.getRepeatInterval());
+        synchronized (this) {
+            editedTask.setTime(newTaskStart, newTaskEnd, editedTask.getRepeatInterval());
+            editedTask.setActive(editedTask.isActive());
+            setListMutated(true);
+        }
         System.out.println("Times were edited successfully!");
     }
 
@@ -1034,17 +1129,30 @@ public class Controller {
             switch (inputChoice) {
                 case "1": //Edit the title
                     String newTitle = getTitleOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
-                    editedTask.setTitle(newTitle);
+                    synchronized (this) {
+                        editedTask.setTitle(newTitle);
+                        setListMutated(true);
+                    }
+                    log.info("Task title was edited successfully.");
                     editTaskByIndex(index);
                     break;
                 case "2": //Edit time
                     Date newDate = getDateOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
-                    editedTask.setTime(newDate);
+                    synchronized (this) {
+                        editedTask.setTime(newDate);
+                        editedTask.setActive(editedTask.isActive());
+                        setListMutated(true);
+                    }
+                    log.info("Task time was edited successfully.");
                     System.out.println("Scheduled time was edited successfully!");
                     editTaskByIndex(index);
                     break;
                 case "3": //Change active state
-                    editChangeActiveState(editedTask);
+                    synchronized (this) {
+                        editChangeActiveState(editedTask);
+                        setListMutated(true);
+                    }
+                    log.info("Task state was edited successfully.");
                     editTaskByIndex(index);
                     break;
                 default:
@@ -1137,7 +1245,7 @@ public class Controller {
                         return true;
 
                     case GET_DATE:
-                        System.out.print("Please enter " + message + " in following format 'YYYY-mm-dd', you may not enter part after days");
+                        System.out.print("Please enter " + message + " in following format 'YYYY-mm-dd HH:mm:ss', you may not enter part after days");
                         return true;
 
                     case GET_TITLE:
@@ -1151,6 +1259,15 @@ public class Controller {
                     case GET_REPEAT_INTERVAL:
                         System.out.print("\nPlease enter "+ message +" repeat interval for your task in SECONDS\n");
                         return true;
+
+                    case EDIT_NOTIFICATIONS:
+                        notificationsMenu();
+                        return true;
+
+                    case EXIT:
+                        System.out.print("Enter 'y' if you want to save changes made in current session, enter 'n' otherwise");
+                        return true;
+
                 }
                 break;
 
@@ -1167,6 +1284,7 @@ public class Controller {
                     case EDIT_TASK_LIST:
                     case REMOVE_TASKS:
                     case CHANGE_TASK_STATE:
+                    case EDIT_NOTIFICATIONS:
                         taskListMain();
                         return true;
 
@@ -1186,30 +1304,235 @@ public class Controller {
                             return true;
                         }
                         return false;
+
+                    case EXIT:
+                        switch (routedToMenu) {
+                            case CHOOSE_TASKLIST:
+                                chooseTaskList();
+                                return true;
+
+                            case REMOVE_TASKS:
+                                removeTasks();
+                                return true;
+
+                            case EDIT_TASK_LIST:
+                                editTaskList();
+                                return true;
+
+                            case EDIT_REPEATED_TASK:
+                            case EDIT_NON_REPEATED_TASK:
+                                editTaskByIndex(index[0]);
+                            return true;
+
+                            case EDIT_NOTIFICATIONS:
+                                editNotifications();
+                                return true;
+
+                            default:
+                                taskListMain();
+                        }
+                        return true;
                 }
                 break;
             case "exit":
             case "quit":
-                exit();
-                return true;
+                switch (currentMenu) {
+                    case EXIT:
+                        return false;
+                    case CHOOSE_TASKLIST:
+                        exit();
+                        return false;
+                    default:
+                        exitMenu(currentMenu, message, index);
+                }
+                return false;
         }
         return  false;
     }
 
     /**
+     * Menu, where user can turn on/off the notifications,
+     * is formed by {@link #menuUtil(String...)} method.
+     *
+     * If notifications are currently off, user can only turn them on and vice versa.
+     *
+     */
+    private void notificationsMenu() {
+        System.out.println("You can change the state of notifications here.");
+        String stateOn = "\nNotifications are currently ON\n";
+        String menuItemIfOn = "Turn notifications OFF";
+
+        String stateOff = "\nNotifications are currently OFF\n";
+        String menuItemIfOff = "Turn notifications ON";
+        if(notificationsAreEnabled) {
+            System.out.println(stateOn);
+            menuUtil(menuItemIfOn);
+        } else {
+            System.out.println(stateOff);
+            menuUtil(menuItemIfOff);
+        }
+
+    }
+
+    /**
+     * The actual editing of notifications
+     * It's state is flipped every time, when user presses '1'
+     * User can use predefined statements, if he types in one of them,
+     * {@link #routeIfControlWord(String, Menus, Menus, String, int...)} will route him to desired menu.
+     */
+    private void editNotifications() {
+        notificationsMenu();
+        String inputChoice;
+        do {
+            inputChoice = getTrimmedInput();
+            switch (inputChoice) {
+                case "1":
+                    notificationsAreEnabled = !notificationsAreEnabled;
+                    pokeNotificationsManager(notificationsAreEnabled);
+                    notificationsMenu();
+                    log.info("Notifications were flipped. Notifications are enabled: " + notificationsAreEnabled);
+                    break;
+                default:
+                    boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_NOTIFICATIONS, Menus.VOID, "");
+                    if(!routed)
+                        System.out.print("Incorrect input, please retry.");
+            }
+        } while (true);
+    }
+
+    /**
+     * Every time user enters an app, last state of notification is loaded.
+     * In case file is missing, or there was an error, while reading it,
+     * return value will be false.
+     *
+     * @return true,
+     *         if file exists and there were no errors during reading.
+     *
+     *         false,
+     *         if file is missing or there was an error, while reading from file.
+     */
+    private boolean loadNotificationsState() {
+        boolean state;
+        File oldTasks = new File("nstate.bin");
+        try (DataInputStream dos = new DataInputStream(new BufferedInputStream(new FileInputStream(oldTasks)))) {
+            state = dos.readBoolean();
+        } catch (FileNotFoundException ex) {
+            log.warn("Cannot find file for loading notifications state." + ex);
+            state = false;
+        } catch (IOException ex) {
+            log.warn("IOException happened while loading notifications state" + ex);
+            state = false;
+        }
+        if(state) log.info("Notifications state was loaded successfully.");
+        return state;
+    }
+
+    /**
+     * Method, used to save notifications state.
+     *
+     * During next launch of the app notification {@link #loadNotificationsState()}
+     * is going to read saved state, if there was error in this method while writing to the file
+     * default value of false will be returned by {@link #loadNotificationsState()}.
+     *
+     * @param state
+     *        state of notifications to save.
+     */
+    private void saveNotificationsState(boolean state) {
+        File notificationsState = new File("nstate.bin");
+        makeEmptyFileByName("nstate.bin");
+        try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(notificationsState, false)))) {
+            dos.writeBoolean(notificationsAreEnabled);
+        } catch (FileNotFoundException ex) {
+            log.warn("Cannot find file for saving notifications state." + ex);
+        } catch (IOException ex) {
+            log.warn("IOException happened while saving notifications state" + ex);
+        }
+        log.info("Notifications state was saved successfully.");
+    }
+
+    /**
+     * Method to start new thread for notifications.
+     *
+     * If method is called with false argument,
+     * and there is running notification thread {@code notifier},
+     * that thread will be interrupted.
+     *
+     * Calling method with true argument will relaunch notification thread.
+     *
+     * @param state
+     *        true, if notifications should be enabled
+     *        false, if they should be disabled
+     *
+     * @see NotificationsManager
+     */
+    private void pokeNotificationsManager(boolean state) {
+        log.info("Notification manager was poked with: " + state + " state.");
+        try {
+            notifier.interrupt();
+            notifier.join();
+        } catch (InterruptedException ignored) {
+        }
+        if(state) {
+            notifier = new NotificationsManager();
+            notifier.setParentController(this);
+            notifier.setDaemon(true);
+            notifier.start();
+        }
+    }
+
+    /**
+     * Method for showing exit menu, user can type:
+     * - 'menu' to see current menu,
+     * - 'back'/'prev' o step out back to previous menu.
+     *
+     * {@link #routeIfControlWord(String, Menus, Menus, String, int...)} is used to route to correct menu.
+     *
+     * If user wants to save current session changes by typing 'y' in console,
+     * list with tasks will be saved to {@code DEFAULT_STORAGE_FILE_NAME} file and then {@link #exit()} will be called
+     *
+     * Typing 'n' will exit the app without any saving of current list of task.
+     *
+     * @param routedToMenu menu to route back if 'back' was typed
+     * @param message      needed for menu messages, where uer can possibly step out
+     * @param index        needed for menu, where uer can possibly step out
+     */
+    private void exitMenu(Menus routedToMenu, String message, int...index) {
+        System.out.println("\nEnter 'y' if you want to save changes made in current session, enter 'n' otherwise");
+        String inputChoice;
+        do {
+            inputChoice = getTrimmedInput();
+            switch (inputChoice) {
+                case "y":
+                    try {
+                        File oldTasks = new File(DEFAULT_STORAGE_FILE_NAME);
+                        TaskIO.writeText(taskList, oldTasks);
+                    } catch (IOException ex) {
+                        log.error("Exception happened while writing to default storage file while saving upon exiting the application.", ex);
+                    }
+                    log.info("List of tasks was saved before the exit.");
+                    saveNotificationsState(notificationsAreEnabled);
+                    System.out.println("Saving...");
+                    exit();
+                    break;
+                case "n":
+                    log.info("List of tasks was not saved before the exit.");
+                    exit();
+                default:
+                    boolean routed = routeIfControlWord(inputChoice, Menus.EXIT, routedToMenu, message, index);
+                    //above method will resolve predefined words and will route the flow of the program
+                    if(!routed)
+                        System.out.print("Incorrect input, please retry.");
+            }
+        } while (true);
+    }
+
+    /**
      * Method to exit the application.
-     * Under construction.
      */
     private void exit() {
+        log.info("Exiting the app.");
         System.out.println("Exiting...");
         System.exit(0);
     }
-
-    private void editNotifications() {}
-
-    private void viewCollection() {
-        for (Task task : taskList) {
-            System.out.println(task);
-        }
-    }
 }
+

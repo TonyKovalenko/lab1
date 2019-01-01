@@ -6,7 +6,10 @@ import java.util.*;
  * Class with static functions to work with collections of Tasks
  * @see Task
  */
-public class Tasks {
+public final class Tasks {
+
+    private Tasks(){}
+
     /**
      * Method to return Collection of active Tasks, contained between {@code} and {@to} dates
      *
@@ -18,7 +21,6 @@ public class Tasks {
      * @see Iterable
      * @see TaskList
      */
-
     public static Iterable<Task> incoming(Iterable<Task> tasks, Date from, Date to) {
         Iterator<Task> iter = tasks.iterator();
         while (iter.hasNext()) {
@@ -63,7 +65,6 @@ public class Tasks {
                     if(timeToAdd == null) {
                         break;
                     }
-                    System.out.println(timeToAdd);
                     if(calendarToReturn.get(timeToAdd) != null) {
                        Set<Task> newSet = calendarToReturn.get(timeToAdd);
                        newSet.add(currentTask);

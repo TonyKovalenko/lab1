@@ -1,4 +1,3 @@
-
 package com.Kovalenko.lab1.model;
 
 import java.io.*;
@@ -22,7 +21,9 @@ import java.util.regex.Pattern;
  * @since 12-9-2018
  *
  */
-public class TaskIO {
+public final class TaskIO {
+
+    private TaskIO() {}
 
     /**
      * Method to put Task collection {@code tasks} into OutputStream in following format:
@@ -341,7 +342,7 @@ public class TaskIO {
 
     private static int parseRepeatInterval(String data) throws NumberFormatException {
         int days = 0, hours = 0, minutes = 0, seconds = 0;
-        List<String> allMatches = new ArrayList<String>();
+        List<String> allMatches = new ArrayList<>();
         Matcher m = Pattern.compile("\\d+\\s\\w").matcher(data);
         while (m.find()) {
             allMatches.add(m.group());
