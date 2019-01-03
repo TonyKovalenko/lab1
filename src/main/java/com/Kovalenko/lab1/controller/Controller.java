@@ -20,8 +20,8 @@ import java.util.regex.Pattern;
  * @see TaskList
  * @see TaskIO
  */
-public class Controller {
-
+public enum Controller {
+    INSTANCE;
     /**
      * Enum that represents different menus, available to user,
      * used while routing between one another.
@@ -47,11 +47,12 @@ public class Controller {
 
     private volatile ArrayTaskList taskList;
     private static final String DEFAULT_STORAGE_FILE_NAME = "myTasks.txt";
+    private static final String SAVED_NOTIFICATIONS_STATE_FILE_NAME = "out/nstate.bin";
     private boolean notificationsAreEnabled;
     private volatile Boolean listMutated;
     private NotificationsManager notifier;
 
-    public Controller() {
+    Controller() {
         listMutated = false;
         notifier = new NotificationsManager();
     }
@@ -126,7 +127,7 @@ public class Controller {
             try {
                 input = buff.readLine();
             } catch (IOException e) {
-                log.error("NULL returned from input stream.", e);
+                log.error("NULL returned from user's input stream. ", e);
                 System.out.print("! Cannot read input because of internal error, please retry the input.");
             }
         } while (input == null);
@@ -176,14 +177,17 @@ public class Controller {
                     taskList = new ArrayTaskList();
                     System.out.println("New empty list was created.");
                     log.info("User created new empty list of tasks.");
+                    pokeNotificationsManager(false);
                     taskListMain();
                     break;
                 case "2":
                     log.info("User tried to load list of tasks from custom file.");
+                    pokeNotificationsManager(false);
                     loadFromUserSpecifiedFile();
                     taskListMain();
                 case "3":
                     log.info("User tried to load list from last saved file.");
+                    pokeNotificationsManager(notificationsAreEnabled);
                     loadFromLastSavedFile();
                     taskListMain();
                     break;
@@ -229,7 +233,7 @@ public class Controller {
         try {
             TaskIO.readText(taskList, defaultStorageFile);
         } catch (FileNotFoundException ex) {
-            log.info("Last saved file was not found(either this is the first launch or it was accidentally deleted outside the application).", ex);
+            log.info("Last saved file was not found(either this is the first launch or it was accidentally deleted outside the application). ", ex);
             errorHappened = true;
             try {
                 if (defaultStorageFile.createNewFile()) {
@@ -238,7 +242,7 @@ public class Controller {
                                            + "so new empty file was created and list of tasks is now empty");
                 }
             } catch (IOException ioe) {
-                log.fatal("Exception while creating new empty default storage file.", ioe);
+                log.fatal("Exception while creating new empty default storage file. ", ioe);
             }
         } catch (ParseException ex) {
             errorHappened = true;
@@ -246,12 +250,12 @@ public class Controller {
             makeEmptyFileByName(DEFAULT_STORAGE_FILE_NAME);
             System.out.println("! Seems like the content of last saved file is corrupted, "
                                 + "so new empty file was created and list of tasks is now empty");
-            log.warn("Last saved file was corrupted outside the application. File was emptied and new list of tasks was created", ex);
+            log.warn("Last saved file was corrupted outside the application. File was emptied and new list of tasks was created. ", ex);
         } catch (IOException ex) {
             errorHappened = true;
             System.out.println("! Error happened while reading from file, list of tasks is now empty");
             taskList = new ArrayTaskList();
-            log.warn("There was an exception, while reading from default storage file to list of tasks, empty collection was created.", ex);
+            log.warn("There was an exception, while reading from default storage file to list of tasks, empty collection was created. ", ex);
         }
         if(!errorHappened) {
             System.out.println("File was loaded successfully! ");
@@ -313,15 +317,15 @@ public class Controller {
             TaskIO.readText(taskList, new File(inputtedFilePath));
         } catch (FileNotFoundException ex) {
             System.out.println("\n! Sorry, but the specified file was not found. Returning you to previous menu.");
-            log.info("User specified nonexistent file to load tasks from.", ex);
+            log.info("User specified nonexistent file to load tasks from. ", ex);
             errorHappened = true;
         } catch (ParseException ex) {
             System.out.println("\n! Sorry, but the specified file contains incorrect tasks format inside. Returning you to previous menu.");
-            log.info("User's specified file contained incorrect task format.", ex);
+            log.info("User's specified file contained incorrect task format. ", ex);
             errorHappened = true;
         } catch (IOException ex) {
             System.out.println("\n! Sorry, the specified file can't be read properly. Returning you to previous menu.");
-            log.warn("User's specified file was not read correctly.", ex);
+            log.warn("User's specified file was not read correctly. ", ex);
             errorHappened = true;
         } finally {
             if(errorHappened){
@@ -329,7 +333,7 @@ public class Controller {
             }
         }
         System.out.println("File was loaded successfully.");
-        log.info("User specified file aws loaded successfully.");
+        log.info("User's specified file was loaded successfully.");
     }
 
     /**
@@ -497,7 +501,7 @@ public class Controller {
             } catch (IndexOutOfBoundsException ex) {
                 System.out.print(ex.getMessage());
                 indexesToRemoveTasksFrom = null;
-                log.info("Index out of bounds in user's input while removing tasks", ex);
+                log.info("Index out of bounds in user's input while removing tasks. ", ex);
                 continue;
             }
 
@@ -708,7 +712,7 @@ public class Controller {
                 String pattern = "^\\d{4}-\\d{2}-\\d{2}(\\s\\d{2}:\\d{2}:\\d{2})?$";
                 boolean matches = Pattern.matches(pattern, inputChoice);
                 if(!matches) {
-                    log.info("Invalid date format was inputted." + inputChoice);
+                    log.info("Invalid date format was inputted. " + inputChoice);
                     throw new ParseException("Date wasn't matched with the pattern", -1);
                 }
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -718,7 +722,7 @@ public class Controller {
                 sdf.setLenient(false);
                 actualDate = sdf.parse(inputChoice);
             } catch (ParseException ex) {
-                //log.debug("Probable unexpected ParseException if pattern was matched.", ex);
+                //log.debug("Probable unexpected ParseException if pattern was matched. ", ex);
                 correctInput = false;
                 boolean routed = routeIfControlWord(inputChoice, Menus.GET_DATE, stepOutTo, message, indexIfEditing);
                 //depending on the menu, predefined statements can route to different menus, so we use above method
@@ -897,7 +901,7 @@ public class Controller {
                 try {
                     interval = Integer.parseInt(inputChoice);
                 } catch (NumberFormatException ex) {
-                    log.info("Invalid repeat interval format in user's input.", ex);
+                    log.info("Invalid repeat interval format in user's input. ", ex);
                     System.out.println("You've entered repeat interval in wrong format, please retry.");
                     continue;
                 }
@@ -923,7 +927,7 @@ public class Controller {
             try {
                 indexToEditTask = checkForValidEditIndex(inputChoice);
             } catch (NumberFormatException|IndexOutOfBoundsException ex) {
-                log.info("Invalid edit indexes in user's input" + ex);
+                log.info("Invalid edit indexes in user's input " + ex);
                 routed = routeIfControlWord(inputChoice, Menus.EDIT_TASK_LIST, Menus.VOID, "");
                 if(!routed) {
                     System.out.println(ex.getMessage());
@@ -932,6 +936,7 @@ public class Controller {
             }
             if(!routed)
             editTaskByIndex(indexToEditTask - 1);
+            routed = false;
         } while(true);
     }
 
@@ -1103,8 +1108,9 @@ public class Controller {
             }
         } while (newTaskStart.after(newTaskEnd));
         synchronized (this) {
+            boolean isActive = editedTask.isActive();
             editedTask.setTime(newTaskStart, newTaskEnd, editedTask.getRepeatInterval());
-            editedTask.setActive(editedTask.isActive());
+            editedTask.setActive(isActive);
             setListMutated(true);
         }
         System.out.println("Times were edited successfully!");
@@ -1139,8 +1145,9 @@ public class Controller {
                 case "2": //Edit time
                     Date newDate = getDateOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
                     synchronized (this) {
+                        boolean isActive = editedTask.isActive();
                         editedTask.setTime(newDate);
-                        editedTask.setActive(editedTask.isActive());
+                        editedTask.setActive(isActive);
                         setListMutated(true);
                     }
                     log.info("Task time was edited successfully.");
@@ -1339,9 +1346,6 @@ public class Controller {
                 switch (currentMenu) {
                     case EXIT:
                         return false;
-                    case CHOOSE_TASKLIST:
-                        exit();
-                        return false;
                     default:
                         exitMenu(currentMenu, message, index);
                 }
@@ -1390,7 +1394,11 @@ public class Controller {
                     notificationsAreEnabled = !notificationsAreEnabled;
                     pokeNotificationsManager(notificationsAreEnabled);
                     notificationsMenu();
-                    log.info("Notifications were flipped. Notifications are enabled: " + notificationsAreEnabled);
+                    if(notificationsAreEnabled) {
+                        log.info("Notifications state was flipped. Notifications are now enabled. " + notificationsAreEnabled);
+                    } else {
+                        log.info("Notifications state was flipped. Notifications are now disabled. " + notificationsAreEnabled);
+                    }
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_NOTIFICATIONS, Menus.VOID, "");
@@ -1413,14 +1421,14 @@ public class Controller {
      */
     private boolean loadNotificationsState() {
         boolean state;
-        File oldTasks = new File("nstate.bin");
+        File oldTasks = new File(SAVED_NOTIFICATIONS_STATE_FILE_NAME);
         try (DataInputStream dos = new DataInputStream(new BufferedInputStream(new FileInputStream(oldTasks)))) {
             state = dos.readBoolean();
         } catch (FileNotFoundException ex) {
-            log.warn("Cannot find file for loading notifications state." + ex);
+            log.warn("Cannot find file for loading notifications state. " + ex);
             state = false;
         } catch (IOException ex) {
-            log.warn("IOException happened while loading notifications state" + ex);
+            log.warn("IOException happened while loading notifications state. " + ex);
             state = false;
         }
         if(state) log.info("Notifications state was loaded successfully.");
@@ -1438,14 +1446,14 @@ public class Controller {
      *        state of notifications to save.
      */
     private void saveNotificationsState(boolean state) {
-        File notificationsState = new File("nstate.bin");
-        makeEmptyFileByName("nstate.bin");
+        File notificationsState = new File(SAVED_NOTIFICATIONS_STATE_FILE_NAME);
+        makeEmptyFileByName(SAVED_NOTIFICATIONS_STATE_FILE_NAME);
         try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(notificationsState, false)))) {
             dos.writeBoolean(notificationsAreEnabled);
         } catch (FileNotFoundException ex) {
-            log.warn("Cannot find file for saving notifications state." + ex);
+            log.warn("Cannot find file for saving notifications state. " + ex);
         } catch (IOException ex) {
-            log.warn("IOException happened while saving notifications state" + ex);
+            log.warn("IOException happened while saving notifications state. " + ex);
         }
         log.info("Notifications state was saved successfully.");
     }
@@ -1507,7 +1515,7 @@ public class Controller {
                         File oldTasks = new File(DEFAULT_STORAGE_FILE_NAME);
                         TaskIO.writeText(taskList, oldTasks);
                     } catch (IOException ex) {
-                        log.error("Exception happened while writing to default storage file while saving upon exiting the application.", ex);
+                        log.error("Exception happened while writing to default storage file while saving upon exiting the application. ", ex);
                     }
                     log.info("List of tasks was saved before the exit.");
                     saveNotificationsState(notificationsAreEnabled);

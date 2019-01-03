@@ -7,8 +7,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
-
 /**
  * Controller class of TaskManager
  *

@@ -6,7 +6,7 @@ import com.Kovalenko.lab1.controller.Controller;
 public class App {
 
     static void start() {
-        Controller myController = new Controller();
+        Controller myController = Controller.INSTANCE;
         myController.run();
     }
 

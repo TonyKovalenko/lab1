@@ -57,7 +57,7 @@ public final class TaskIO {
             }
         } catch (IOException ex) {
             ex.printStackTrace();
-            throw new IOException("IOException happened, while writing to OutputStream from collection");
+            throw new IOException("IOException happened, while writing to OutputStream from collection", ex);
         }
     }
 
