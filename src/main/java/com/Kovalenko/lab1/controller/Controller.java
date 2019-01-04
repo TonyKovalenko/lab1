@@ -244,7 +244,7 @@ public enum Controller {
             } catch (IOException ioe) {
                 log.fatal("Exception while creating new empty default storage file. ", ioe);
             }
-        } catch (ParseException ex) {
+        } catch (ParseException|StringIndexOutOfBoundsException ex) {
             errorHappened = true;
             taskList = new ArrayTaskList();
             makeEmptyFileByName(DEFAULT_STORAGE_FILE_NAME);
@@ -319,7 +319,7 @@ public enum Controller {
             System.out.println("\n! Sorry, but the specified file was not found. Returning you to previous menu.");
             log.info("User specified nonexistent file to load tasks from. ", ex);
             errorHappened = true;
-        } catch (ParseException ex) {
+        } catch (ParseException|StringIndexOutOfBoundsException ex) {
             System.out.println("\n! Sorry, but the specified file contains incorrect tasks format inside. Returning you to previous menu.");
             log.info("User's specified file contained incorrect task format. ", ex);
             errorHappened = true;
@@ -327,8 +327,8 @@ public enum Controller {
             System.out.println("\n! Sorry, the specified file can't be read properly. Returning you to previous menu.");
             log.warn("User's specified file was not read correctly. ", ex);
             errorHappened = true;
-        } finally {
-            if(errorHappened){
+        }  finally {
+         if(errorHappened){
                 chooseTaskList();
             }
         }

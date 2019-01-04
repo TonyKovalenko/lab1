@@ -232,7 +232,7 @@ public final class TaskIO {
      * @param tasks collection of Task, we want to be filled from Reader
      * @param in Reader, to fill the collection from
      */
-    public static void read(TaskList tasks, Reader in) throws IOException, ParseException {
+    public static void read(TaskList tasks, Reader in) throws IOException, ParseException, StringIndexOutOfBoundsException {
         BufferedReader bufferedReader = new BufferedReader(in);
         String currentLine;
         Task currentTask;
