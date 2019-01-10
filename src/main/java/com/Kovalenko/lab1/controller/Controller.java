@@ -14,44 +14,21 @@ import java.util.regex.Pattern;
  *
  * @author Anton Kovalenko
  * @version 1.1
- * @since 1.8
- *
  * @see Task
  * @see TaskList
  * @see TaskIO
+ * @since 1.8
  */
 public enum Controller {
     INSTANCE;
-    /**
-     * Enum that represents different menus, available to user,
-     * used while routing between one another.
-     */
-    private enum Menus {
-        CHOOSE_TASKLIST,
-        TASKLIST_MAIN,
-        REMOVE_TASKS,
-        EDIT_TASK_LIST,
-        EDIT_TASK_BY_INDEX,
-        EDIT_NON_REPEATED_TASK,
-        EDIT_REPEATED_TASK,
-        GET_DATE,
-        GET_TITLE,
-        CHANGE_TASK_STATE,
-        GET_REPEAT_INTERVAL,
-        EDIT_NOTIFICATIONS,
-        EXIT,
-        VOID
-    }
 
-    private static Logger log = Logger.getLogger(Controller.class.getName());
-
-    private volatile ArrayTaskList taskList;
     private static final String DEFAULT_STORAGE_FILE_NAME = "myTasks.txt";
     private static final String SAVED_NOTIFICATIONS_STATE_FILE_NAME = "out/nstate.bin";
+    private static Logger log = Logger.getLogger(Controller.class.getName());
+    private volatile ArrayTaskList taskList;
     private boolean notificationsAreEnabled;
     private volatile Boolean listMutated;
     private NotificationsManager notifier;
-
     Controller() {
         listMutated = false;
         notifier = new NotificationsManager();
@@ -72,10 +49,10 @@ public enum Controller {
     }
 
     /**
-     *  Main method to start an application,
-     *  it welcomes the user by calling {@link #welcomeMessage()} method
-     *  and continues execution by passing the control
-     *  to {@link #chooseTaskList()} method
+     * Main method to start an application,
+     * it welcomes the user by calling {@link #welcomeMessage()} method
+     * and continues execution by passing the control
+     * to {@link #chooseTaskList()} method
      */
     public void run() {
         log.info("App started.");
@@ -89,8 +66,8 @@ public enum Controller {
      */
     private void welcomeMessage() {
         System.out.println("-------------------------------\n" +
-                           "*** Welcome to Task Manager ***\n" +
-                           "-------------------------------");
+                               "*** Welcome to Task Manager ***\n" +
+                               "-------------------------------");
     }
 
     /**
@@ -104,7 +81,7 @@ public enum Controller {
      *
      * @param items menu items, that should be displayed
      */
-    private void menuUtil(String...items) {
+    private void menuUtil(String... items) {
         String menuFormat = "#%d\t%s%n";
         int i = 0;
 
@@ -116,13 +93,13 @@ public enum Controller {
     /**
      * Method for reading user input from console using BufferedReader class
      *
-     * @return  trimmed value of users input
+     * @return trimmed value of users input
      * @see BufferedReader
      */
     private String getTrimmedInput() {
         System.out.print("\n>>> Your input: ");
         String input = "";
-        BufferedReader buff  = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
         do {
             try {
                 input = buff.readLine();
@@ -138,10 +115,10 @@ public enum Controller {
     /**
      * Method for printing the menu, by using which user can choose,
      * from where he wants all the tasks to be loaded from
-     *
+     * <p>
      * Menu is printed by using {@link #menuUtil(String...)} method
      */
-    private void showChooseTaskListMenu()  {
+    private void showChooseTaskListMenu() {
         System.out.println("\n - Please choose a further action by typing it's number in following menu \u2193 \n");
         String menuItemCreateEmptyTaskList = "Create new empty list of tasks.";
         String menuItemLoadTaskListFromFile = "Load list of tasks from existing file.";
@@ -153,17 +130,17 @@ public enum Controller {
     /**
      * Method for actual choosing from where he wants all the tasks to be loaded from
      * Available typing options: '1' - Creating new empty TaskList
-     *
-     *                           '2' - Load from own file, by specifying path to it,
-     *                           by using  {@link #loadFromUserSpecifiedFile()} method
-     *
-     *                           '3' - Load from last saved default storage file,
-     *                           by using {@link #loadFromLastSavedFile()} method
-     *
-     *                           'exit', 'quit' - will exit the application (this is predefined statement)
-     *
-     *                           'menu' - will display current menu and will wait for user input (this is predefined statement)
-     *
+     * <p>
+     * '2' - Load from own file, by specifying path to it,
+     * by using  {@link #loadFromUserSpecifiedFile()} method
+     * <p>
+     * '3' - Load from last saved default storage file,
+     * by using {@link #loadFromLastSavedFile()} method
+     * <p>
+     * 'exit', 'quit' - will exit the application (this is predefined statement)
+     * <p>
+     * 'menu' - will display current menu and will wait for user input (this is predefined statement)
+     * <p>
      * Predefined statements will be resolved in {@link #routeIfControlWord(String, Menus, Menus, String, int...)}
      * In case of wrong input, user will be asked to retry.
      */
@@ -194,8 +171,8 @@ public enum Controller {
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.CHOOSE_TASKLIST, Menus.VOID, "");
                     //above method will resolve predefined words and will route the flow of the program
-                    if(!routed)
-                    System.out.print("Incorrect input, please retry.");
+                    if (!routed)
+                        System.out.print("Incorrect input, please retry.");
             }
         } while (true);
     }
@@ -204,23 +181,23 @@ public enum Controller {
      * - Method for adding tasks to {@code taskList}
      * by loading collection of Tasks from
      * default storage text file with {@code defaultFileName} name
-     *
+     * <p>
      * - In case of last saved storage file is missing,
      * FileNotFoundException will be thrown by {@link com.Kovalenko.lab1.model.TaskIO#readText(TaskList, File)} method
      * So instead new empty default storage file will be created {@link #makeEmptyFileByName(String)},
      * and {@code taskList} will be empty too.
-     *
+     * <p>
      * - In case of last saved storage file is corrupted,
      * i.e. format of any Task inside the file is not one of such templates:
-     *
-     *    "Task title" at [2014-06-28 18:00:13.000];
-     *    "Very ""Good"" title" at [2013-05-10 20:31:20.001] inactive; (quotes in titles are doubled)
-     *    "Other task" from [2010-06-01 08:00:00.000] to [2010-09-01 00:00:00.000] every [1 day].
-     *    "not active repeated" from [1970-01-02 05:46:40.000] to [1970-01-02 11:20:00.000] every [7 minutes 30 seconds] inactive;
-     *
+     * <p>
+     * "Task title" at [2014-06-28 18:00:13.000];
+     * "Very ""Good"" title" at [2013-05-10 20:31:20.001] inactive; (quotes in titles are doubled)
+     * "Other task" from [2010-06-01 08:00:00.000] to [2010-09-01 00:00:00.000] every [1 day].
+     * "not active repeated" from [1970-01-02 05:46:40.000] to [1970-01-02 11:20:00.000] every [7 minutes 30 seconds] inactive;
+     * <p>
      * then ParseException will be thrown by {@link com.Kovalenko.lab1.model.TaskIO#readText(TaskList, File)} method
      * So instead new empty default file will be created, and {@code taskList} will be empty too.
-     *
+     * <p>
      * - In case of any IOException while reading from default storage file,
      * there will be empty {@code taskList} created
      *
@@ -244,12 +221,12 @@ public enum Controller {
             } catch (IOException ioe) {
                 log.fatal("Exception while creating new empty default storage file. ", ioe);
             }
-        } catch (ParseException|StringIndexOutOfBoundsException ex) {
+        } catch (ParseException | StringIndexOutOfBoundsException ex) {
             errorHappened = true;
             taskList = new ArrayTaskList();
             makeEmptyFileByName(DEFAULT_STORAGE_FILE_NAME);
             System.out.println("! Seems like the content of last saved file is corrupted, "
-                                + "so new empty file was created and list of tasks is now empty");
+                                   + "so new empty file was created and list of tasks is now empty");
             log.warn("Last saved file was corrupted outside the application. File was emptied and new list of tasks was created. ", ex);
         } catch (IOException ex) {
             errorHappened = true;
@@ -257,7 +234,7 @@ public enum Controller {
             taskList = new ArrayTaskList();
             log.warn("There was an exception, while reading from default storage file to list of tasks, empty collection was created. ", ex);
         }
-        if(!errorHappened) {
+        if (!errorHappened) {
             System.out.println("File was loaded successfully! ");
             log.info("Last saved default storage file was loaded successfully.");
         }
@@ -286,22 +263,22 @@ public enum Controller {
      * - Method for adding tasks to {@code taskList}
      * by loading collection of Tasks from
      * user specified {@code inputtedFilePath} text file.
-     *
+     * <p>
      * - In case of user specified file is missing,
      * FileNotFoundException will be thrown by {@link com.Kovalenko.lab1.model.TaskIO#readText(TaskList, File)} method.
      * So user will be redirected to previous menu {@link #showChooseTaskListMenu()}.
-     *
+     * <p>
      * - In case of user specified file is corrupted,
      * i.e. format of any Task inside the file is not one of such templates:
-     *
-     *    "Task title" at [2014-06-28 18:00:13.000];
-     *     "Very ""Good"" title" at [2013-05-10 20:31:20.001] inactive; (quotes in titles are doubled)
-     *     "Other task" from [2010-06-01 08:00:00.000] to [2010-09-01 00:00:00.000] every [1 day].
-     *     "not active repeated" from [1970-01-02 05:46:40.000] to [1970-01-02 11:20:00.000] every [7 minutes 30 seconds] inactive;     *
-     *
+     * <p>
+     * "Task title" at [2014-06-28 18:00:13.000];
+     * "Very ""Good"" title" at [2013-05-10 20:31:20.001] inactive; (quotes in titles are doubled)
+     * "Other task" from [2010-06-01 08:00:00.000] to [2010-09-01 00:00:00.000] every [1 day].
+     * "not active repeated" from [1970-01-02 05:46:40.000] to [1970-01-02 11:20:00.000] every [7 minutes 30 seconds] inactive;     *
+     * <p>
      * ParseException will be thrown by {@link com.Kovalenko.lab1.model.TaskIO#readText(TaskList, File)} method.
      * So user will be redirected to previous menu {@link #showChooseTaskListMenu()}.
-     *
+     * <p>
      * - In case of any IOException while reading from user specified file,
      * user will be redirected to previous menu {@link #showChooseTaskListMenu()}.
      *
@@ -319,7 +296,7 @@ public enum Controller {
             System.out.println("\n! Sorry, but the specified file was not found. Returning you to previous menu.");
             log.info("User specified nonexistent file to load tasks from. ", ex);
             errorHappened = true;
-        } catch (ParseException|StringIndexOutOfBoundsException ex) {
+        } catch (ParseException | StringIndexOutOfBoundsException ex) {
             System.out.println("\n! Sorry, but the specified file contains incorrect tasks format inside. Returning you to previous menu.");
             log.info("User's specified file contained incorrect task format. ", ex);
             errorHappened = true;
@@ -327,8 +304,8 @@ public enum Controller {
             System.out.println("\n! Sorry, the specified file can't be read properly. Returning you to previous menu.");
             log.warn("User's specified file was not read correctly. ", ex);
             errorHappened = true;
-        }  finally {
-         if(errorHappened){
+        } finally {
+            if (errorHappened) {
                 chooseTaskList();
             }
         }
@@ -338,9 +315,8 @@ public enum Controller {
 
     /**
      * Main menu, printed using {@link #menuUtil(String...)}
-     *
+     * <p>
      * Here user can choose what to do next with collection
-     *
      */
     private void showTaskListMainMenu() {
         System.out.println("\n---------- Main menu -----------");
@@ -358,22 +334,22 @@ public enum Controller {
     /**
      * Method for actual choosing what user wants to do with the loaded collection
      * Available typing options: '1' - Viewing all tasks in the list
-     *
-     *                           '2' - Adding new task to the list
-     *
-     *                           '3' - Remove task from list
-     *
-     *                           '4' - Edit task in list
-     *
-     *                           '5' - View calendar
-     *
-     *                           '3' - Edit notifications
-     *
-     *                           'back', 'prev' - will return to previous menu (this is predefined statement)
-     *
-     *                           'exit', 'quit' - will exit the application (this is predefined statement)
-     *
-     *                           'menu' - will display current menu and will wait for user input (this is predefined statement)
+     * <p>
+     * '2' - Adding new task to the list
+     * <p>
+     * '3' - Remove task from list
+     * <p>
+     * '4' - Edit task in list
+     * <p>
+     * '5' - View calendar
+     * <p>
+     * '3' - Edit notifications
+     * <p>
+     * 'back', 'prev' - will return to previous menu (this is predefined statement)
+     * <p>
+     * 'exit', 'quit' - will exit the application (this is predefined statement)
+     * <p>
+     * 'menu' - will display current menu and will wait for user input (this is predefined statement)
      * Predefined statements are resolved in {@link #routeIfControlWord(String, Menus, Menus, String, int...)}
      * In case of wrong input, user will be asked to retry.
      */
@@ -411,18 +387,18 @@ public enum Controller {
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.TASKLIST_MAIN, Menus.VOID, "");
-                    if(!routed)
-                    System.out.print("Incorrect input, please retry.");
+                    if (!routed)
+                        System.out.print("Incorrect input, please retry.");
             }
         } while (true);
     }
 
     /**
      * Method for viewing current list of tasks
-     *
+     * <p>
      * If it is empty, there will be a message about it,
      * if not, list of tasks will be displayed on the screen by using {@link #viewCollection()}.
-     *
+     * <p>
      * After viewing user should press ENTER button,
      * this will redirect him to previous menu by calling {@link #showChooseTaskListMenu()}
      */
@@ -438,7 +414,7 @@ public enum Controller {
      * Method for viewing list of task as a menu, using {@link #menuUtil(String...)} method.
      */
     private void viewCollection() {
-        String [] taskListAsMenu = new String[taskList.size()];
+        String[] taskListAsMenu = new String[taskList.size()];
         int i = 0;
         for (Task task : taskList) {
             taskListAsMenu[i] = task.toString();
@@ -476,10 +452,9 @@ public enum Controller {
      * it will display all tasks description, if list of tasks is not empty,
      * otherwise user will be notified about it and proposed to hit ENTER key,
      * which will return him to previous menu {@link #showChooseTaskListMenu()}.
-     *
+     * <p>
      * There is an option to delete several tasks at once if user enters task's
      * menu indexes, separated by spaces. But still, this input will be validated.
-     *
      */
     private void removeTasks() {
         checkIfEmptyCollectionThenStepOut("Nothing to remove.");
@@ -492,12 +467,12 @@ public enum Controller {
                 indexesToRemoveTasksFrom = parseNeededRemoveIndexes(inputChoice); //parse user input to get desired remove indexes
                 checkForInvalidRemovalIndexes(indexesToRemoveTasksFrom); //validate just inputted indexes
             } catch (NumberFormatException ex) {
-                    boolean routed = routeIfControlWord(inputChoice, Menus.REMOVE_TASKS, Menus.VOID , "");
-                    if(!routed) {
-                        System.out.print("Incorrect input, please retry.");
-                        log.info("Invalid index in user's input while removing tasks", ex);
-                        continue;
-                    }
+                boolean routed = routeIfControlWord(inputChoice, Menus.REMOVE_TASKS, Menus.VOID, "");
+                if (!routed) {
+                    System.out.print("Incorrect input, please retry.");
+                    log.info("Invalid index in user's input while removing tasks", ex);
+                    continue;
+                }
             } catch (IndexOutOfBoundsException ex) {
                 System.out.print(ex.getMessage());
                 indexesToRemoveTasksFrom = null;
@@ -505,23 +480,23 @@ public enum Controller {
                 continue;
             }
 
-            if(indexesToRemoveTasksFrom != null) {
+            if (indexesToRemoveTasksFrom != null) {
                 removeTasksByGivenIndexesConfirmation(indexesToRemoveTasksFrom);
             }
-            } while (true);
+        } while (true);
     }
 
     /**
      * Menu, that will be displayed, when user chooses to delete tasks from collection
-     *
+     * <p>
      * Tasks from collection will be displayed in following format:
-     *
+     * <p>
      * #1   Task description
      * #2   Task description
      * ...  ...
-     *
+     * <p>
      * Such output is formed in {@link #menuItemsOutOfCollection(TaskList)} method.
-     *
+     * <p>
      * Remove logic relies on the fact that actual index of task in collection is (#ofSelectedTask - 1),
      */
     private void showRemoveTasksMenu() {
@@ -539,7 +514,6 @@ public enum Controller {
      * @param tasks collection of tasks, each task will be converted into string representation
      *              and put into String array by corresponding index.
      * @return String array, each element of which is corresponding task in collection.
-     *
      * @see TaskList
      */
     private String[] menuItemsOutOfCollection(TaskList tasks) {
@@ -567,7 +541,7 @@ public enum Controller {
         int indexesToRemoveTasksFrom[] = new int[s.length];
 
         try {
-            for(int i = 0 ; i < s.length ; i++) {
+            for (int i = 0; i < s.length; i++) {
                 indexesToRemoveTasksFrom[i] = Integer.parseInt(s[i]);
             }
         } catch (NumberFormatException ex) {
@@ -591,25 +565,25 @@ public enum Controller {
     private void checkForInvalidRemovalIndexes(int[] removalIndexes) throws IndexOutOfBoundsException {
         boolean invalidIndexDetected = false;
         ArrayList<Integer> invalidIndexes = new ArrayList<>();
-        for(int i = 0; i < removalIndexes.length; i++) {
+        for (int i = 0; i < removalIndexes.length; i++) {
             if (removalIndexes[i] < 1 || removalIndexes[i] > taskList.size()) {
                 invalidIndexDetected = true;
                 invalidIndexes.add(removalIndexes[i]);
             }
         }
-        if(invalidIndexDetected) {
+        if (invalidIndexDetected) {
             throw new IndexOutOfBoundsException("! There were invalid removal indexes in your input " + Collections.singletonList(invalidIndexes) + ", please retry.");
         }
     }
 
     /**
-     *  Method to confirm or cancel removal from collection.
-     *  User should enter 'y' - to confirm deletion, so {@link #removeByIndexesConfirmed(int[])} will be called
-     *
-     *                    'n',
-     *                    'back',
-     *                    'prev' - to cancel deletion, then there will be a redirect
-     *                             back to remove menu {@link #removeTasks()}
+     * Method to confirm or cancel removal from collection.
+     * User should enter 'y' - to confirm deletion, so {@link #removeByIndexesConfirmed(int[])} will be called
+     * <p>
+     * 'n',
+     * 'back',
+     * 'prev' - to cancel deletion, then there will be a redirect
+     * back to remove menu {@link #removeTasks()}
      *
      * @param indexes validated int[] of indexes that will be used to delete tasks from collection.
      */
@@ -636,8 +610,8 @@ public enum Controller {
                 case "prev":
                     removeTasks();
                     break;
-                    default:
-                        System.out.print("To confirm removal please type 'y', to cancel it - type 'n'");
+                default:
+                    System.out.print("To confirm removal please type 'y', to cancel it - type 'n'");
             }
         } while (true);
     }
@@ -657,15 +631,15 @@ public enum Controller {
 
     /**
      * Method to create calendar for dates that will be specified by a user
-     *
+     * <p>
      * If a task list is empty, there will be a notification about it,
      * then user will have to press ENTER to go to previous menu {@link #taskListMain()}
-     *
+     * <p>
      * Next steps will be the input of {@code startDate} and {@code endDate}
-     *
+     * <p>
      * This input will be validated by checking of {@code endDate} is after {@code startDate}
      * If this validation fails, user will be proposed to retry his input of dates.
-     *
+     * <p>
      * After input was validated, {@link #renderCalendar(Date, Date)} will be executed,
      * to output calendar for selected dates
      */
@@ -678,30 +652,30 @@ public enum Controller {
         do {
             startDate = getDateOrStepOutTo(Menus.TASKLIST_MAIN, "START date for calendar");
             endDate = getDateOrStepOutTo(Menus.TASKLIST_MAIN, "END date for calendar");
-            if(endDate.before(startDate)) {
+            if (endDate.before(startDate)) {
                 correctInput = false;
                 System.out.println("! END date [" + endDate + "] should be after START [" + startDate + "] date, please retry your input.");
             }
         } while (!correctInput);
-            renderCalendar(startDate, endDate);
-            log.info("User successfully rendered calendar for specified dates.");
-        }
+        renderCalendar(startDate, endDate);
+        log.info("User successfully rendered calendar for specified dates.");
+    }
 
     /**
      * Method to get date from user in one of following formats:
-     *  - YYYY-mm-DD HH:mm:ss
-     *  - YYYY-mm-DD
+     * - YYYY-mm-DD HH:mm:ss
+     * - YYYY-mm-DD
+     * <p>
+     * In case of wrong input user will be asked to retry input.
+     * This method can be used in different menus.
      *
-     *  In case of wrong input user will be asked to retry input.
-     *  This method can be used in different menus.
-     *
-     * @param stepOutTo menu, where to step out from current menu
-     * @param message String, that will be used, for showing messages according to the menu, that this method is used in
+     * @param stepOutTo      menu, where to step out from current menu
+     * @param message        String, that will be used, for showing messages according to the menu, that this method is used in
      * @param indexIfEditing in case we step out from edit menu, while using this method, we need to provide index for editing task menu
      * @return in case of correct input, valid Date object will be returned
      */
-    private Date getDateOrStepOutTo(Menus stepOutTo, String message, int...indexIfEditing) {
-        System.out.print("\nPlease enter " + message + " in following format 'YYYY-mm-DD HH:mm:ss, you may not enter part after days'\n");
+    private Date getDateOrStepOutTo(Menus stepOutTo, String message, int... indexIfEditing) {
+        System.out.print("\nPlease enter " + message + " in following format 'YYYY-mm-DD HH:mm:ss' \n");
         String inputChoice;
         Date actualDate = new Date();
         boolean correctInput;
@@ -711,7 +685,7 @@ public enum Controller {
             try {
                 String pattern = "^\\d{4}-\\d{2}-\\d{2}(\\s\\d{2}:\\d{2}:\\d{2})?$";
                 boolean matches = Pattern.matches(pattern, inputChoice);
-                if(!matches) {
+                if (!matches) {
                     log.info("Invalid date format was inputted. " + inputChoice);
                     throw new ParseException("Date wasn't matched with the pattern", -1);
                 }
@@ -726,10 +700,10 @@ public enum Controller {
                 correctInput = false;
                 boolean routed = routeIfControlWord(inputChoice, Menus.GET_DATE, stepOutTo, message, indexIfEditing);
                 //depending on the menu, predefined statements can route to different menus, so we use above method
-                if(!routed)
-                System.out.print("! You've entered " + message + " in invalid format, please retry.");
+                if (!routed)
+                    System.out.print("! You've entered " + message + " in invalid format, please retry.");
             }
-            if(correctInput) {
+            if (correctInput) {
                 return actualDate;
             }
         } while (true);
@@ -737,15 +711,15 @@ public enum Controller {
 
     /**
      * Method to get title from user input.
-     *
+     * <p>
      * Title is validated not to consist of spaces or newline character only.
      *
      * @param stepOutTo      the menu, we can step out to from current menu, using {@link #routeIfControlWord(String, Menus, Menus, String, int...)}
      * @param message        String value, that can be used in the menu messages, we are using the method in
      * @param indexIfEditing in case we use this method in edit menu, we need to provide index of task to edit, when we step out
      */
-    private String getTitleOrStepOutTo(Menus stepOutTo, String message, int...indexIfEditing) {
-        System.out.print("\nPlease enter title for your "+ message +" task\n");
+    private String getTitleOrStepOutTo(Menus stepOutTo, String message, int... indexIfEditing) {
+        System.out.print("\nPlease enter title for your " + message + " task\n");
         String inputChoice;
         do {
             inputChoice = getTrimmedInput();
@@ -755,7 +729,7 @@ public enum Controller {
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.GET_TITLE, stepOutTo, message, indexIfEditing);
-                    if(!routed)
+                    if (!routed)
                         return inputChoice;
             }
         } while (true);
@@ -764,23 +738,22 @@ public enum Controller {
     /**
      * Method to render calendar to console.
      * Calendar is formed using {@link Tasks#calendar(Iterable, Date, Date)} method
-     *
+     * <p>
      * For each date between {@code from} and {@code to}
      * when there will be a tasks scheduled, following output will be produced
-     *
+     * <p>
      * --- Date ---
      * Task 1 ....
      * Task 2 ....
      * ------------
-     *
+     * <p>
      * If there will be no tasks scheduled for specified period
      * there will be notification message about it.
-     *
+     * <p>
      * After output was produced, user will be redirected to previous menu after pressing ENTER key.
      *
      * @param from date to search for scheduled tasks from
      * @param to   date to search for scheduled tasks to
-     *
      * @see Tasks
      */
     private void renderCalendar(Date from, Date to) {
@@ -788,7 +761,7 @@ public enum Controller {
                                + from.toString() + " and end: "
                                + to.toString() + " dates are shown below.\n");
         SortedMap<Date, Set<Task>> calendar = Tasks.calendar(taskList, from, to);
-        if(calendar.size() == 0) {
+        if (calendar.size() == 0) {
             System.out.println("No tasks for selected period.\n");
         } else {
             calendar.forEach((K, V) -> {
@@ -805,7 +778,7 @@ public enum Controller {
 
     /**
      * Method to add tasks to collection.
-     *
+     * <p>
      * Title is validated not to consist of spaces or newline character only.
      * Start date is validated to be BEFORE end date.
      * User should input all necessary fields before the task could be created.
@@ -825,11 +798,11 @@ public enum Controller {
         System.out.println("----------- Add menu -----------");
         taskTitle = getTitleOrStepOutTo(Menus.TASKLIST_MAIN, "new");
         taskIsRepeated = getStateOrStepOutTo("repeated");
-        if(taskIsRepeated) {
+        if (taskIsRepeated) {
             do {
                 taskStart = getDateOrStepOutTo(Menus.TASKLIST_MAIN, "START date for your new task");
                 taskEnd = getDateOrStepOutTo(Menus.TASKLIST_MAIN, "END date for your new task");
-                if(taskStart.after(taskEnd)) {
+                if (taskStart.after(taskEnd)) {
                     System.out.println("\n! END date [" + taskEnd + "] should be after START date [" + taskStart + "], please retry your input.");
                 }
             } while (taskStart.after(taskEnd));
@@ -839,7 +812,7 @@ public enum Controller {
         }
         taskIsActive = getStateOrStepOutTo("active");
 
-        if(taskIsRepeated) {
+        if (taskIsRepeated) {
             taskToAdd = new Task(taskTitle, taskStart, taskEnd, taskRepeatInterval);
             taskToAdd.setActive(taskIsActive);
             taskList.add(taskToAdd);
@@ -859,7 +832,7 @@ public enum Controller {
      *
      * @param str String, to be used in displayed menu
      * @return true,  if input was 'y'
-     *         false, if input tas 'n'
+     * false, if input tas 'n'
      */
     private boolean getStateOrStepOutTo(String str) {
         System.out.print("\nPlease enter 'y' if your task is " + str + ", enter 'n' otherwise\n");
@@ -873,8 +846,8 @@ public enum Controller {
                     return false;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.CHANGE_TASK_STATE, Menus.VOID, str);
-                    if(!routed)
-                    System.out.print("Wrong input, please retry.");
+                    if (!routed)
+                        System.out.print("Wrong input, please retry.");
             }
         } while (true);
     }
@@ -883,21 +856,19 @@ public enum Controller {
      * Method to get repeat interval for the task in seconds.
      * User should eventually enter valid interval value or step out to previous menu.
      *
-     *
      * @param stepOutTo      the menu, we can step out to from current menu, using {@link #routeIfControlWord(String, Menus, Menus, String, int...)}
      * @param message        String value, that can be used in the menu messages, we are using the method in
      * @param indexIfEditing in case we use this method in edit menu, we need to provide index of task to edit, when we step out
-     *
      * @return parsed correct int value as repeat interval
      */
-    private int getRepeatIntervalOrStepOutTo(Menus stepOutTo, String message, int...indexIfEditing) {
-        System.out.print("\nPlease enter "+ message +" repeat interval for your task in SECONDS\n");
+    private int getRepeatIntervalOrStepOutTo(Menus stepOutTo, String message, int... indexIfEditing) {
+        System.out.print("\nPlease enter " + message + " repeat interval for your task in SECONDS\n");
         String inputChoice;
         int interval;
         do {
             inputChoice = getTrimmedInput();
             boolean routed = routeIfControlWord(inputChoice, Menus.GET_REPEAT_INTERVAL, stepOutTo, message, indexIfEditing);
-            if(!routed) {
+            if (!routed) {
                 try {
                     interval = Integer.parseInt(inputChoice);
                 } catch (NumberFormatException ex) {
@@ -926,31 +897,31 @@ public enum Controller {
             inputChoice = getTrimmedInput();
             try {
                 indexToEditTask = checkForValidEditIndex(inputChoice);
-            } catch (NumberFormatException|IndexOutOfBoundsException ex) {
+            } catch (NumberFormatException | IndexOutOfBoundsException ex) {
                 log.info("Invalid edit indexes in user's input " + ex);
                 routed = routeIfControlWord(inputChoice, Menus.EDIT_TASK_LIST, Menus.VOID, "");
-                if(!routed) {
+                if (!routed) {
                     System.out.println(ex.getMessage());
                     continue;
                 }
             }
-            if(!routed)
-            editTaskByIndex(indexToEditTask - 1);
+            if (!routed)
+                editTaskByIndex(indexToEditTask - 1);
             routed = false;
-        } while(true);
+        } while (true);
     }
 
     /**
      * Menu, that will be displayed, when user wants to edit tasks in collection
-     *
+     * <p>
      * Tasks from collection will be displayed in following format:
-     *
+     * <p>
      * #1   Task description
      * #2   Task description
      * ...  ...
-     *
+     * <p>
      * Such output is formed in {@link #menuItemsOutOfCollection(TaskList)} method.
-     *
+     * <p>
      * Edit logic relies on the fact that actual index of task in collection is (#i - 1),
      */
     private void editTaskMenu() {
@@ -965,9 +936,8 @@ public enum Controller {
      *
      * @param input String, user's input
      * @return index of needed task in collection to edit,
-     *         if it isn't out of collection bounds and
-     *         was parsed to int correctly.
-     *
+     * if it isn't out of collection bounds and
+     * was parsed to int correctly.
      * @throws NumberFormatException if {@code input} was not parsed to int correctly,
      *                               or specified parsed index is out of collection bounds
      */
@@ -979,8 +949,8 @@ public enum Controller {
             throw new NumberFormatException("\nYou've entered invalid task number [" + input + "]. Please, retry your input.");
         }
 
-        if(index < 1 || index > taskList.size() ) {
-          throw new IndexOutOfBoundsException("\nYour task number is out of bounds [" + input + "]. Please, retry your input.");
+        if (index < 1 || index > taskList.size()) {
+            throw new IndexOutOfBoundsException("\nYour task number is out of bounds [" + input + "]. Please, retry your input.");
         } else {
             return index;
         }
@@ -988,7 +958,7 @@ public enum Controller {
 
     /**
      * Method to determine what type of task will be edited(repeated or non-repeated) using user inputted index.
-     *
+     * <p>
      * Depending on type of the task {@link #editRepeatedTask(Task, int)} or {@link #editNonRepeatedTask(Task, int)}
      * will be used to edit the task.
      *
@@ -998,7 +968,7 @@ public enum Controller {
         System.out.println("\n--- You are editing --- \n" + taskList.getTask(index));
         Task editedTask = taskList.getTask(index);
         boolean taskIsRepeated = editedTask.isRepeated();
-        if(taskIsRepeated) {
+        if (taskIsRepeated) {
             editRepeatedTask(editedTask, index);
         } else {
             editNonRepeatedTask(editedTask, index);
@@ -1008,13 +978,13 @@ public enum Controller {
     /**
      * Method to edit repeated task.
      * Options for editing repeated task are provided by {@link #editOptionsForRepeatedTask(Task)}
-     *
+     * <p>
      * After task was edited, user is returned again on the menu with options to edit same task,
      * as there are several edit options to choose from.
      *
      * @param editedTask the actual task that will be edited
-     * @param index index of the task that will be edited,
-     *              used also while stepping out from this method to previous menu {@link #editTaskByIndex(int)}
+     * @param index      index of the task that will be edited,
+     *                   used also while stepping out from this method to previous menu {@link #editTaskByIndex(int)}
      */
     private void editRepeatedTask(Task editedTask, int index) {
         editOptionsForRepeatedTask(editedTask);
@@ -1059,10 +1029,10 @@ public enum Controller {
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_REPEATED_TASK, Menus.VOID, "", index);
-                    if(!routed)
-                    System.out.println("Incorrect input, please retry.");
+                    if (!routed)
+                        System.out.println("Incorrect input, please retry.");
             }
-        } while(true);
+        } while (true);
     }
 
     /**
@@ -1077,7 +1047,7 @@ public enum Controller {
         String editStartTime = "Edit times for the task.";
         String editRepeatInterval = "Edit repeat interval for the task.";
         String isActive;
-        if(editedTask.isActive()) {
+        if (editedTask.isActive()) {
             isActive = "Make your task inactive.";
         } else {
             isActive = "Make your task active.";
@@ -1090,20 +1060,20 @@ public enum Controller {
      * Method to edit start and end time while editing repeated task.
      * Entered dates are validated for start date to be BEFORE end date.
      * In case of wrong input user will have to retry input of both dates.
-     *
+     * <p>
      * User can step out to previous menu {@link #editTaskByIndex(int)}
      *
      * @param editedTask the actual task that will be edited
-     * @param index index of the task that will be edited,
-     *              used also while stepping out from this method to previous menu {@link #editTaskByIndex(int)}
+     * @param index      index of the task that will be edited,
+     *                   used also while stepping out from this method to previous menu {@link #editTaskByIndex(int)}
      */
     private void editStartAndEndTimes(Task editedTask, int index) {
         Date newTaskStart;
         Date newTaskEnd;
         do {
-            newTaskStart = getDateOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "START date for your task",  index);
+            newTaskStart = getDateOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "START date for your task", index);
             newTaskEnd = getDateOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "END date for your task", index);
-            if(newTaskStart.after(newTaskEnd)) {
+            if (newTaskStart.after(newTaskEnd)) {
                 System.out.println("\n! END date [" + newTaskEnd + "] should be after START date [" + newTaskStart + "], please retry your input.");
             }
         } while (newTaskStart.after(newTaskEnd));
@@ -1119,13 +1089,13 @@ public enum Controller {
     /**
      * Method to edit non-repeated task.
      * Options for editing repeated task are provided by {@link #editOptionsForNonRepeatedTask(Task)}
-     *
+     * <p>
      * After task was edited, user is returned again on the menu with options to edit same task,
      * as there are several edit options to choose from.
      *
      * @param editedTask the actual task that will be edited
-     * @param index index of the task that will be edited,
-     *              used also while stepping out from this method to previous menu {@link #editTaskByIndex(int)}
+     * @param index      index of the task that will be edited,
+     *                   used also while stepping out from this method to previous menu {@link #editTaskByIndex(int)}
      */
     private void editNonRepeatedTask(Task editedTask, int index) {
         editOptionsForNonRepeatedTask(editedTask);
@@ -1164,25 +1134,25 @@ public enum Controller {
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_NON_REPEATED_TASK, Menus.VOID, "");
-                    if(!routed)
-                    System.out.println("Incorrect input, please retry.");
-                }
-        } while(true);
+                    if (!routed)
+                        System.out.println("Incorrect input, please retry.");
+            }
+        } while (true);
     }
 
     /**
-    * Edit options when the edited task is non-repeated.
-    * Option to make task active/inactive is computed using current task state.
-    *
-    * @param editedTask actual task that will be edited,
-     *                  used to compute menu item about it's current active/inactive state
-    */
+     * Edit options when the edited task is non-repeated.
+     * Option to make task active/inactive is computed using current task state.
+     *
+     * @param editedTask actual task that will be edited,
+     *                   used to compute menu item about it's current active/inactive state
+     */
     private void editOptionsForNonRepeatedTask(Task editedTask) {
         System.out.println("\n - Choose what do you want to edit in your task.\n");
         String editTitle = "Edit the title.";
         String editStartTime = "Edit scheduled time for the task.";
         String isActive;
-        if(editedTask.isActive()) {
+        if (editedTask.isActive()) {
             isActive = "Make your task inactive.";
         } else {
             isActive = "Make your task active.";
@@ -1198,7 +1168,7 @@ public enum Controller {
      * @param task task, which state is edited
      */
     private void editChangeActiveState(Task task) {
-        if(task.isActive()) {
+        if (task.isActive()) {
             System.out.println("Task is now INACTIVE");
         } else {
             System.out.println("Task is now ACTIVE");
@@ -1208,25 +1178,23 @@ public enum Controller {
 
     /**
      * Method to route user from one menu to another.
-     *
+     * <p>
      * There are 3 types of predefined statements that can be inputted in most menus:
-     *
+     * <p>
      * 1. 'menu'        - displays current menu.
      * 2. 'prev'/'back' - routes user to the previous menu.
      * 3. 'exit'/quit'  - exits the application using {@link #exit()} method.
      *
-     *
-     * @param controlWord   one of predefined statements.
-     * @param currentMenu   current menu, user is working in.
-     * @param routedToMenu  menu, which will be displayed in case of 'back'/'prev' input.
-     * @param message       String that could be used for current menu messages.
-     * @param index         used in case we are in edit menu.
-     *
-     * @return              true, is {@code controlWord} was one of the predefined statements
-     *                            and method routed user to any of the menus.
-     *                      false, if {@code controlWord} was not a predefined statement.
+     * @param controlWord  one of predefined statements.
+     * @param currentMenu  current menu, user is working in.
+     * @param routedToMenu menu, which will be displayed in case of 'back'/'prev' input.
+     * @param message      String that could be used for current menu messages.
+     * @param index        used in case we are in edit menu.
+     * @return true, is {@code controlWord} was one of the predefined statements
+     * and method routed user to any of the menus.
+     * false, if {@code controlWord} was not a predefined statement.
      */
-    private boolean routeIfControlWord(String controlWord, Menus currentMenu, Menus routedToMenu, String message, int...index) {
+    private boolean routeIfControlWord(String controlWord, Menus currentMenu, Menus routedToMenu, String message, int... index) {
         switch (controlWord) {
             case "menu":
                 switch (currentMenu) {
@@ -1252,11 +1220,11 @@ public enum Controller {
                         return true;
 
                     case GET_DATE:
-                        System.out.print("Please enter " + message + " in following format 'YYYY-mm-dd HH:mm:ss', you may not enter part after days");
+                        System.out.print("Please enter " + message + " in following format 'YYYY-mm-dd HH:mm:ss'");
                         return true;
 
                     case GET_TITLE:
-                        System.out.print("\nPlease enter title for your "+ message +" task\n");
+                        System.out.print("\nPlease enter title for your " + message + " task\n");
                         return true;
 
                     case CHANGE_TASK_STATE:
@@ -1264,7 +1232,7 @@ public enum Controller {
                         return true;
 
                     case GET_REPEAT_INTERVAL:
-                        System.out.print("\nPlease enter "+ message +" repeat interval for your task in SECONDS\n");
+                        System.out.print("\nPlease enter " + message + " repeat interval for your task in SECONDS\n");
                         return true;
 
                     case EDIT_NOTIFICATIONS:
@@ -1306,7 +1274,7 @@ public enum Controller {
                         if (routedToMenu == Menus.TASKLIST_MAIN) {
                             taskListMain();
                             return true;
-                        } else if (routedToMenu == Menus.EDIT_TASK_BY_INDEX){
+                        } else if (routedToMenu == Menus.EDIT_TASK_BY_INDEX) {
                             editTaskByIndex(index[0]);
                             return true;
                         }
@@ -1329,7 +1297,7 @@ public enum Controller {
                             case EDIT_REPEATED_TASK:
                             case EDIT_NON_REPEATED_TASK:
                                 editTaskByIndex(index[0]);
-                            return true;
+                                return true;
 
                             case EDIT_NOTIFICATIONS:
                                 editNotifications();
@@ -1351,15 +1319,14 @@ public enum Controller {
                 }
                 return false;
         }
-        return  false;
+        return false;
     }
 
     /**
      * Menu, where user can turn on/off the notifications,
      * is formed by {@link #menuUtil(String...)} method.
-     *
+     * <p>
      * If notifications are currently off, user can only turn them on and vice versa.
-     *
      */
     private void notificationsMenu() {
         System.out.println("You can change the state of notifications here.");
@@ -1368,7 +1335,7 @@ public enum Controller {
 
         String stateOff = "\nNotifications are currently OFF\n";
         String menuItemIfOff = "Turn notifications ON";
-        if(notificationsAreEnabled) {
+        if (notificationsAreEnabled) {
             System.out.println(stateOn);
             menuUtil(menuItemIfOn);
         } else {
@@ -1394,7 +1361,7 @@ public enum Controller {
                     notificationsAreEnabled = !notificationsAreEnabled;
                     pokeNotificationsManager(notificationsAreEnabled);
                     notificationsMenu();
-                    if(notificationsAreEnabled) {
+                    if (notificationsAreEnabled) {
                         log.info("Notifications state was flipped. Notifications are now enabled. " + notificationsAreEnabled);
                     } else {
                         log.info("Notifications state was flipped. Notifications are now disabled. " + notificationsAreEnabled);
@@ -1402,7 +1369,7 @@ public enum Controller {
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_NOTIFICATIONS, Menus.VOID, "");
-                    if(!routed)
+                    if (!routed)
                         System.out.print("Incorrect input, please retry.");
             }
         } while (true);
@@ -1414,10 +1381,10 @@ public enum Controller {
      * return value will be false.
      *
      * @return true,
-     *         if file exists and there were no errors during reading.
-     *
-     *         false,
-     *         if file is missing or there was an error, while reading from file.
+     * if file exists and there were no errors during reading.
+     * <p>
+     * false,
+     * if file is missing or there was an error, while reading from file.
      */
     private boolean loadNotificationsState() {
         boolean state;
@@ -1431,19 +1398,18 @@ public enum Controller {
             log.warn("IOException happened while loading notifications state. " + ex);
             state = false;
         }
-        if(state) log.info("Notifications state was loaded successfully.");
+        if (state) log.info("Notifications state was loaded successfully.");
         return state;
     }
 
     /**
      * Method, used to save notifications state.
-     *
+     * <p>
      * During next launch of the app notification {@link #loadNotificationsState()}
      * is going to read saved state, if there was error in this method while writing to the file
      * default value of false will be returned by {@link #loadNotificationsState()}.
      *
-     * @param state
-     *        state of notifications to save.
+     * @param state state of notifications to save.
      */
     private void saveNotificationsState(boolean state) {
         File notificationsState = new File(SAVED_NOTIFICATIONS_STATE_FILE_NAME);
@@ -1460,17 +1426,15 @@ public enum Controller {
 
     /**
      * Method to start new thread for notifications.
-     *
+     * <p>
      * If method is called with false argument,
      * and there is running notification thread {@code notifier},
      * that thread will be interrupted.
-     *
+     * <p>
      * Calling method with true argument will relaunch notification thread.
      *
-     * @param state
-     *        true, if notifications should be enabled
-     *        false, if they should be disabled
-     *
+     * @param state true, if notifications should be enabled
+     *              false, if they should be disabled
      * @see NotificationsManager
      */
     private void pokeNotificationsManager(boolean state) {
@@ -1480,7 +1444,7 @@ public enum Controller {
             notifier.join();
         } catch (InterruptedException ignored) {
         }
-        if(state) {
+        if (state) {
             notifier = new NotificationsManager();
             notifier.setParentController(this);
             notifier.setDaemon(true);
@@ -1492,19 +1456,19 @@ public enum Controller {
      * Method for showing exit menu, user can type:
      * - 'menu' to see current menu,
      * - 'back'/'prev' o step out back to previous menu.
-     *
+     * <p>
      * {@link #routeIfControlWord(String, Menus, Menus, String, int...)} is used to route to correct menu.
-     *
+     * <p>
      * If user wants to save current session changes by typing 'y' in console,
      * list with tasks will be saved to {@code DEFAULT_STORAGE_FILE_NAME} file and then {@link #exit()} will be called
-     *
+     * <p>
      * Typing 'n' will exit the app without any saving of current list of task.
      *
      * @param routedToMenu menu to route back if 'back' was typed
      * @param message      needed for menu messages, where uer can possibly step out
      * @param index        needed for menu, where uer can possibly step out
      */
-    private void exitMenu(Menus routedToMenu, String message, int...index) {
+    private void exitMenu(Menus routedToMenu, String message, int... index) {
         System.out.println("\nEnter 'y' if you want to save changes made in current session, enter 'n' otherwise");
         String inputChoice;
         do {
@@ -1528,7 +1492,7 @@ public enum Controller {
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.EXIT, routedToMenu, message, index);
                     //above method will resolve predefined words and will route the flow of the program
-                    if(!routed)
+                    if (!routed)
                         System.out.print("Incorrect input, please retry.");
             }
         } while (true);
@@ -1541,6 +1505,27 @@ public enum Controller {
         log.info("Exiting the app.");
         System.out.println("Exiting...");
         System.exit(0);
+    }
+
+    /**
+     * Enum that represents different menus, available to user,
+     * used while routing between one another.
+     */
+    private enum Menus {
+        CHOOSE_TASKLIST,
+        TASKLIST_MAIN,
+        REMOVE_TASKS,
+        EDIT_TASK_LIST,
+        EDIT_TASK_BY_INDEX,
+        EDIT_NON_REPEATED_TASK,
+        EDIT_REPEATED_TASK,
+        GET_DATE,
+        GET_TITLE,
+        CHANGE_TASK_STATE,
+        GET_REPEAT_INTERVAL,
+        EDIT_NOTIFICATIONS,
+        EXIT,
+        VOID
     }
 }
 

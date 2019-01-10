@@ -8,12 +8,12 @@ import java.util.Objects;
  * class FilledTaskList
  * contains representation for Not empty TaskList
  * and methods to work with list of Tasks
+ *
+ * @author Anton Kovalenko
+ * @version 1.0
  * @see Task
  * @see TaskList
- *
- @author  Anton Kovalenko
-  * @version 1.0
- * @since   11-4-2018
+ * @since 11-4-2018
  */
 class FilledTaskList implements TaskListable, Serializable {
 
@@ -22,8 +22,9 @@ class FilledTaskList implements TaskListable, Serializable {
 
     /**
      * Constructor, creates FilledTaskList with {@code first} as element in it
-     *  rest part {@code rest} is assigned with EmptyTaskList instance
-     * @param first  Task, to be added as element
+     * rest part {@code rest} is assigned with EmptyTaskList instance
+     *
+     * @param first Task, to be added as element
      * @see EmptyTaskList
      */
     public FilledTaskList(Task first) {
@@ -34,7 +35,8 @@ class FilledTaskList implements TaskListable, Serializable {
     /**
      * Constructor, creates FilledTaskList with {@code first} as element in it
      * rest part {@code rest} is assigned with rest instance
-     * @param first  Task, to be added as element
+     *
+     * @param first Task, to be added as element
      * @param rest  TaskList, to be added as rest part
      * @see EmptyTaskList
      */
@@ -80,6 +82,7 @@ class FilledTaskList implements TaskListable, Serializable {
                        this.getRest().equals(castedList.getRest());
         }
     }
+
     /**
      * Returns a hash code value for the object. This method is
      * supported for the benefit of hash tables such as those provided by

@@ -9,9 +9,9 @@ import java.util.Objects;
  * class Task contains information about it's essence, it's status (active/disable),
  * time of notification, interval of notification.
  *
- * @author  Anton Kovalenko
+ * @author Anton Kovalenko
  * @version 1.0
- * @since   10-12-2018
+ * @since 10-12-2018
  */
 public class Task implements Cloneable, Serializable {
 
@@ -24,15 +24,66 @@ public class Task implements Cloneable, Serializable {
     private int repeatInterval;
 
     /**
+     * Default constructor for Task class, creates unrepeatable Task instance
+     */
+    public Task() {
+    }
+
+    /**
+     * Constructor for Task class, creates unrepeatable Task instance
+     *
+     * @param title title for the Task
+     * @param time  time for unrepeatable Task
+     */
+    public Task(String title, Date time) throws IllegalArgumentException {
+        this.setTitle(title);
+        this.setTime(time);
+    }
+
+    /**
+     * Constructor for Task class, creates repeatable Task instance
+     *
+     * @param title          title for the Task
+     * @param start          start time for repeatable Task
+     * @param end            end time for repeatable Task
+     * @param repeatInterval repeatInterval interval for repeatable Task
+     */
+    public Task(String title, Date start, Date end, int repeatInterval) throws IllegalArgumentException {
+        this.setTitle(title);
+        this.setTime(start, end, repeatInterval);
+    }
+
+    /**
+     * Static method to compare Dates
+     *
+     * @param o1 First date to compare
+     * @param o2 Second date to compare
+     * @return 0 if dates are equal
+     * -1 if o1 < o2
+     * 1 if o1 > o2
+     */
+    public static int compareDates(Date o1, Date o2) {
+        if (o1 == null) return -1;
+        if (o2 == null) return 1;
+        if (o1.getTime() > o2.getTime()) return 1;
+        if (o1.getTime() < o2.getTime()) return -1;
+        if (o1.getTime() == o2.getTime()) return 0;
+        return 0;
+    }
+
+    /**
      * Gets a title of a Task
+     *
      * @return title of a Task
      */
     public String getTitle() {
         return this.title;
     }
+
     /**
      * Sets a title for the Task
-     * @param title  desired title for the Task
+     *
+     * @param title desired title for the Task
      */
     public void setTitle(String title) throws IllegalArgumentException {
         if (title == null /*|| title.trim().equals("")*/ || title.indexOf('\n') != -1) {
@@ -44,6 +95,7 @@ public class Task implements Cloneable, Serializable {
 
     /**
      * Checks if the Task is active
+     *
      * @return true if the Task is active, otherwise false
      */
     public boolean isActive() {
@@ -52,7 +104,8 @@ public class Task implements Cloneable, Serializable {
 
     /**
      * Sets the Task active
-     * @param active  state for the Task, true for making it active, false for making it inactive
+     *
+     * @param active state for the Task, true for making it active, false for making it inactive
      */
     public void setActive(boolean active) {
         this.active = active;
@@ -60,31 +113,14 @@ public class Task implements Cloneable, Serializable {
 
     /**
      * Sets the time of notification for Task, Task becomes inactive
-     * If called for repeatable Task makes it non repeatable
-     * @param time  time for Task notification
-     */
-    public void setTime(Date time) throws IllegalArgumentException{
-        if (time.getTime() >= 0) {
-            this.time = time;
-            this.start = time;
-            this.end = time;
-            this.repeatInterval = 0;
-            this.repeated = false;
-            this.active = false;
-        } else {
-            throw new IllegalArgumentException("Invalid argument, time should be more or equal than zero");
-        }
-    }
-
-    /**
-     * Sets the time of notification for Task, Task becomes inactive
      * If called for non repeatable Task makes it repeatable
-     * @param start    start time for Task notification
-     * @param end	  end time for Task notification
-     * @param repeat  repeatInterval period for Task notification
+     *
+     * @param start  start time for Task notification
+     * @param end    end time for Task notification
+     * @param repeat repeatInterval period for Task notification
      */
-    public void setTime(Date start, Date end, int repeat) throws IllegalArgumentException{
-        if (( end.getTime() > start.getTime() ) && ( repeat > 0 ) && (start.getTime() >= 0)) {
+    public void setTime(Date start, Date end, int repeat) throws IllegalArgumentException {
+        if ((end.getTime() > start.getTime()) && (repeat > 0) && (start.getTime() >= 0)) {
             this.time = start;
             this.start = start;
             this.end = end;
@@ -98,6 +134,7 @@ public class Task implements Cloneable, Serializable {
 
     /**
      * Gets the start time for Task notification
+     *
      * @return start notification time for repeatable, notification time for non repeatable
      */
     public Date getTime() {
@@ -105,7 +142,27 @@ public class Task implements Cloneable, Serializable {
     }
 
     /**
+     * Sets the time of notification for Task, Task becomes inactive
+     * If called for repeatable Task makes it non repeatable
+     *
+     * @param time time for Task notification
+     */
+    public void setTime(Date time) throws IllegalArgumentException {
+        if (time.getTime() >= 0) {
+            this.time = time;
+            this.start = time;
+            this.end = time;
+            this.repeatInterval = 0;
+            this.repeated = false;
+            this.active = false;
+        } else {
+            throw new IllegalArgumentException("Invalid argument, time should be more or equal than zero");
+        }
+    }
+
+    /**
      * Gets the start time for Task notification
+     *
      * @return start notification time for repeatable, notification time for non repeatable
      */
     public Date getStartTime() {
@@ -114,28 +171,20 @@ public class Task implements Cloneable, Serializable {
 
     /**
      * Gets the end time for Task notification
+     *
      * @return end notification time for repeatable, notification time for non repeatable
      */
-    public Date getEndTime(){
-        if( !this.repeated ){
+    public Date getEndTime() {
+        if (!this.repeated) {
             return this.time;
-        }else {
+        } else {
             return this.end;
         }
     }
 
     /**
-     * Sets the repeatInterval interval for Task notification
-     * does nothing fro non-repeated Task
-     */
-    public void setRepeatInterval(int repeatInterval) {
-        if(this.isRepeated()) {
-            this.repeatInterval = repeatInterval;
-        }
-    }
-
-    /**
      * Gets the repeatInterval interval for Task notification
+     *
      * @return end repeatInterval interval for repeatable Task, zero for non repeatable
      */
     public int getRepeatInterval() {
@@ -143,7 +192,18 @@ public class Task implements Cloneable, Serializable {
     }
 
     /**
+     * Sets the repeatInterval interval for Task notification
+     * does nothing fro non-repeated Task
+     */
+    public void setRepeatInterval(int repeatInterval) {
+        if (this.isRepeated()) {
+            this.repeatInterval = repeatInterval;
+        }
+    }
+
+    /**
      * Gets the repeatInterval interval in milliseconds for Task notification
+     *
      * @return end repeatInterval interval for repeatable Task, zero for non repeatable
      */
     public int getMillisecondsRepeatInterval() {
@@ -152,6 +212,7 @@ public class Task implements Cloneable, Serializable {
 
     /**
      * Checks if the Task is repeated
+     *
      * @return true if task is repeatable, false if task is non repeatable
      */
     public boolean isRepeated() {
@@ -160,11 +221,12 @@ public class Task implements Cloneable, Serializable {
 
     /**
      * Gets the next time for Task notification
-     * @param time  after which to search next Task notification  time
+     *
+     * @param time after which to search next Task notification  time
      * @return next time for Task notification , -1 if the Task is not active or it is non repeatable or if there will be no Task notification  after specified time
      */
     public Date nextTimeAfter(Date time) throws IllegalArgumentException {
-        if(time == null || time.getTime() < 0) {
+        if (time == null || time.getTime() < 0) {
             throw new IllegalArgumentException("Time after which to search for next notification cannot be less than zero or null");
         }
 
@@ -174,16 +236,16 @@ public class Task implements Cloneable, Serializable {
 
         if (!this.repeated && this.time.getTime() > time.getTime()) {
             return this.time;
-        } else if (!this.repeated && this.time.getTime() <= time.getTime()){
+        } else if (!this.repeated && this.time.getTime() <= time.getTime()) {
             return null;
         }
 
-        if(this.repeated && this.start.getTime() > time.getTime()) {
+        if (this.repeated && this.start.getTime() > time.getTime()) {
             return this.time;
         } else if (this.repeated && this.start.getTime() <= time.getTime()) {
             for (long i = this.start.getTime(); i < this.end.getTime(); i += getMillisecondsRepeatInterval()) {
-                if( (time.getTime() >= i) && (time.getTime() < i + getMillisecondsRepeatInterval()) ) {
-                    return ( i + getMillisecondsRepeatInterval() > this.end.getTime() ) ? null : new Date(i + getMillisecondsRepeatInterval());
+                if ((time.getTime() >= i) && (time.getTime() < i + getMillisecondsRepeatInterval())) {
+                    return (i + getMillisecondsRepeatInterval() > this.end.getTime()) ? null : new Date(i + getMillisecondsRepeatInterval());
                     //return new Date(i + repeatInterval);
                 }
             }
@@ -194,42 +256,15 @@ public class Task implements Cloneable, Serializable {
     }
 
     /**
-     * Default constructor for Task class, creates unrepeatable Task instance
-     */
-    public Task() {
-    }
-
-    /**
-     * Constructor for Task class, creates unrepeatable Task instance
-     * @param title  title for the Task
-     * @param time  time for unrepeatable Task
-     */
-    public Task(String title, Date time) throws IllegalArgumentException {
-        this.setTitle(title);
-        this.setTime(time);
-    }
-
-    /**
-     * Constructor for Task class, creates repeatable Task instance
-     * @param title     title for the Task
-     * @param start    start time for repeatable Task
-     * @param end      end time for repeatable Task
-     * @param repeatInterval  repeatInterval interval for repeatable Task
-     */
-    public Task(String title, Date start, Date end, int repeatInterval) throws IllegalArgumentException{
-        this.setTitle(title);
-        this.setTime(start, end, repeatInterval);
-    }
-
-    /**
      * Method for text representation of Task
+     *
      * @return 3 different outputs if the task is not active, not repeatable and active, repeatable and active
      */
     @Override
     public String toString() {
-        if( !this.active ) {
+        if (!this.active) {
             return "Task \"" + this.title + "\" is inactive";
-        } else if ( !repeated ) {
+        } else if (!repeated) {
             return "Task \"" + this.title + "\" at " + this.time;
         } else {
             return "Task \"" + this.title + "\" from " + this.start + " to " + this.end + " every " + this.repeatInterval + " seconds";
@@ -247,20 +282,20 @@ public class Task implements Cloneable, Serializable {
      */
     @Override
     public boolean equals(Object task) {
-        if(this == task) return true;
-        if(task == null) return false;
-        if(this.getTitle() == null && ((Task)task).getTitle() == null) return true;
-        if(task.getClass() != this.getClass()) return false;
+        if (this == task) return true;
+        if (task == null) return false;
+        if (this.getTitle() == null && ((Task) task).getTitle() == null) return true;
+        if (task.getClass() != this.getClass()) return false;
 
         Task castedTask = (Task) task;
-        return ( this.getTitle().equals(castedTask.getTitle())
-                     && castedTask.isActive() == this.isActive()
-                     && castedTask.isRepeated() == this.isRepeated()
-                     && castedTask.getTime().getTime() == (this.getTime().getTime())
-                     && castedTask.getStartTime().getTime() == (this.getStartTime().getTime())
-                     && castedTask.getEndTime().getTime() == (this.getEndTime().getTime())
-                     && castedTask.getRepeatInterval() == this.getRepeatInterval()
-                     && castedTask.hashCode() == this.hashCode());
+        return (this.getTitle().equals(castedTask.getTitle())
+                    && castedTask.isActive() == this.isActive()
+                    && castedTask.isRepeated() == this.isRepeated()
+                    && castedTask.getTime().getTime() == (this.getTime().getTime())
+                    && castedTask.getStartTime().getTime() == (this.getStartTime().getTime())
+                    && castedTask.getEndTime().getTime() == (this.getEndTime().getTime())
+                    && castedTask.getRepeatInterval() == this.getRepeatInterval()
+                    && castedTask.hashCode() == this.hashCode());
     }
 
     /**
@@ -339,32 +374,13 @@ public class Task implements Cloneable, Serializable {
      */
     @Override
     public Task clone() throws CloneNotSupportedException {
-        return (Task)super.clone();
+        return (Task) super.clone();
     }
 
     /**
-     * Static method to compare Dates
-     *
-     * @param o1 First date to compare
-     * @param o2 Second date to compare
-     * @return 0 if dates are equal
-     *        -1 if o1 < o2
-     *         1 if o1 > o2
-     */
-    public static int compareDates(Date o1, Date o2) {
-        if (o1 == null) return -1;
-        if (o2 == null) return 1;
-        if (o1.getTime() > o2.getTime()) return 1;
-        if (o1.getTime() < o2.getTime()) return -1;
-        if (o1.getTime() == o2.getTime())return 0;
-        return 0;
-    }
-
-    /**
-     *
      * @param date date, to check if Task is being notified at this date
      * @return true, if there will be a notification about Task at specified date
-     *         false, otherwise
+     * false, otherwise
      */
     public boolean isAtDate(Date date) {
         if (!isActive()) return false;

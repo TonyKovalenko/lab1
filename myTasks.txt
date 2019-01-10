@@ -1,0 +1,9 @@
+"active2" from [1970-01-01 04:30:00.000] to [1970-01-02 05:46:40.000] every [9 minutes 15 seconds] inactive;
+"not active" at [1970-01-01 02:15:00.000] inactive;
+"not active " at [2018-12-23 20:10:50.890] inactive;
+"not active" from [1970-01-02 05:46:40.000] to [1970-01-02 11:20:00.000] every [7 minutes 30 seconds] inactive;
+"active" at [1970-01-02 03:00:10.000];
+"active2" from [1970-01-02 03:00:10.000] to [2018-12-23 20:10:50.890] every [1 day].
+"custom" from [2018-12-23 20:00:00.000] to [2019-01-05 20:00:00.000] every [1 day].
+"custom1_5" from [2018-12-23 20:00:00.000] to [2019-01-05 20:00:00.000] every [1 day].
+"custom2" from [2018-12-23 21:00:00.000] to [2019-01-05 21:00:00.000] every [1 day].
