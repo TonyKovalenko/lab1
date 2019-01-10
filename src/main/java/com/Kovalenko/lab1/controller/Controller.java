@@ -29,6 +29,7 @@ public enum Controller {
     private boolean notificationsAreEnabled;
     private volatile Boolean listMutated;
     private NotificationsManager notifier;
+
     Controller() {
         listMutated = false;
         notifier = new NotificationsManager();
@@ -872,7 +873,7 @@ public enum Controller {
                     System.out.println("You've entered repeat interval in wrong format, please retry.");
                     continue;
                 }
-                return interval*60;
+                return interval * 60;
             }
         } while (true);
     }
@@ -1235,10 +1236,6 @@ public enum Controller {
                         notificationsMenu();
                         return true;
 
-                    case EXIT:
-                        System.out.print("Enter 'y' if you want to save changes made in current session, enter 'n' otherwise");
-                        return true;
-
                 }
                 break;
 
@@ -1276,43 +1273,11 @@ public enum Controller {
                         }
                         return false;
 
-                    case EXIT:
-                        switch (routedToMenu) {
-                            case CHOOSE_TASKLIST:
-                                chooseTaskList();
-                                return true;
-
-                            case REMOVE_TASKS:
-                                removeTasks();
-                                return true;
-
-                            case EDIT_TASK_LIST:
-                                editTaskList();
-                                return true;
-
-                            case EDIT_REPEATED_TASK:
-                            case EDIT_NON_REPEATED_TASK:
-                                editTaskByIndex(index[0]);
-                                return true;
-
-                            case EDIT_NOTIFICATIONS:
-                                editNotifications();
-                                return true;
-
-                            default:
-                                taskListMain();
-                        }
-                        return true;
                 }
                 break;
             case "exit":
             case "quit":
-                switch (currentMenu) {
-                    case EXIT:
-                        return false;
-                    default:
-                        exitMenu(currentMenu, message, index);
-                }
+                exit();
                 return false;
         }
         return false;
@@ -1449,59 +1414,23 @@ public enum Controller {
     }
 
     /**
-     * Method for showing exit menu, user can type:
-     * - 'menu' to see current menu,
-     * - 'back'/'prev' o step out back to previous menu.
-     * <p>
-     * {@link #routeIfControlWord(String, Menus, Menus, String, int...)} is used to route to correct menu.
-     * <p>
-     * If user wants to save current session changes by typing 'y' in console,
-     * list with tasks will be saved to {@code DEFAULT_STORAGE_FILE_NAME} file and then {@link #exit()} will be called
-     * <p>
-     * Typing 'n' will exit the app without any saving of current list of task.
-     *
-     * @param routedToMenu menu to route back if 'back' was typed
-     * @param message      needed for menu messages, where uer can possibly step out
-     * @param index        needed for menu, where uer can possibly step out
-     */
-    private void exitMenu(Menus routedToMenu, String message, int... index) {
-        System.out.println("\nEnter 'y' if you want to save changes made in current session, enter 'n' otherwise");
-        String inputChoice;
-        do {
-            inputChoice = getTrimmedInput();
-            switch (inputChoice) {
-                case "y":
-                    try {
-                        File oldTasks = new File(DEFAULT_STORAGE_FILE_NAME);
-                        TaskIO.writeText(taskList, oldTasks);
-                    } catch (IOException ex) {
-                        log.error("Exception happened while writing to default storage file while saving upon exiting the application. ", ex);
-                    }
-                    log.info("List of tasks was saved before the exit.");
-                    saveNotificationsState(notificationsAreEnabled);
-                    System.out.println("Saving...");
-                    exit();
-                    break;
-                case "n":
-                    log.info("List of tasks was not saved before the exit.");
-                    exit();
-                default:
-                    boolean routed = routeIfControlWord(inputChoice, Menus.EXIT, routedToMenu, message, index);
-                    //above method will resolve predefined words and will route the flow of the program
-                    if (!routed)
-                        System.out.print("Incorrect input, please retry.");
-            }
-        } while (true);
-    }
-
-    /**
      * Method to exit the application.
      */
     private void exit() {
+        try {
+            File oldTasks = new File(DEFAULT_STORAGE_FILE_NAME);
+            TaskIO.writeText(taskList, oldTasks);
+        } catch (IOException ex) {
+            log.error("Exception happened while writing to default storage file while saving upon exiting the application. ", ex);
+        }
+        log.info("List of tasks was saved before the exit.");
+        saveNotificationsState(notificationsAreEnabled);
+        System.out.println("Saving...");
         log.info("Exiting the app.");
         System.out.println("Exiting...");
         System.exit(0);
     }
+
 
     /**
      * Enum that represents different menus, available to user,
@@ -1520,7 +1449,6 @@ public enum Controller {
         CHANGE_TASK_STATE,
         GET_REPEAT_INTERVAL,
         EDIT_NOTIFICATIONS,
-        EXIT,
         VOID
     }
 }
