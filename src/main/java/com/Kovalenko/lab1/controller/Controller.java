@@ -23,16 +23,15 @@ public enum Controller {
     INSTANCE;
 
     private static final String DEFAULT_STORAGE_FILE_NAME = "myTasks.txt";
-    private static final String SAVED_NOTIFICATIONS_STATE_FILE_NAME = "out/nstate.bin";
     private static Logger log = Logger.getLogger(Controller.class.getName());
     private volatile ArrayTaskList taskList;
-    private boolean notificationsAreEnabled;
     private volatile Boolean listMutated;
     private NotificationsManager notifier;
 
     Controller() {
         listMutated = false;
         notifier = new NotificationsManager();
+        taskList = new ArrayTaskList();
     }
 
     public TaskList getTaskList() {
@@ -57,7 +56,6 @@ public enum Controller {
      */
     public void run() {
         log.info("App started.");
-        notificationsAreEnabled = loadNotificationsState();
         welcomeMessage();
         chooseTaskList();
     }
@@ -155,17 +153,17 @@ public enum Controller {
                     taskList = new ArrayTaskList();
                     System.out.println("New empty list was created.");
                     log.info("User created new empty list of tasks.");
-                    pokeNotificationsManager(false);
+                    pokeNotificationsManager(true);
                     taskListMain();
                     break;
                 case "2":
                     log.info("User tried to load list of tasks from custom file.");
-                    pokeNotificationsManager(false);
+                    pokeNotificationsManager(true);
                     loadFromUserSpecifiedFile();
                     taskListMain();
                 case "3":
                     log.info("User tried to load list from last saved file.");
-                    pokeNotificationsManager(notificationsAreEnabled);
+                    pokeNotificationsManager(true);
                     loadFromLastSavedFile();
                     taskListMain();
                     break;
@@ -327,9 +325,8 @@ public enum Controller {
         String menuItemRemoveTask = "Remove tasks from list.";
         String menuItemEditTask = "Edit task in list.";
         String menuItemViewCalendar = "View calendar.";
-        String menuItemEditNotifications = "Edit notifications.";
 
-        menuUtil(menuItemViewTasks, menuItemAddTask, menuItemRemoveTask, menuItemEditTask, menuItemViewCalendar, menuItemEditNotifications);
+        menuUtil(menuItemViewTasks, menuItemAddTask, menuItemRemoveTask, menuItemEditTask, menuItemViewCalendar);
     }
 
     /**
@@ -356,7 +353,6 @@ public enum Controller {
      */
     private void taskListMain() {
         showTaskListMainMenu();
-        pokeNotificationsManager(notificationsAreEnabled);
         String inputChoice;
         do {
             inputChoice = getTrimmedInput();
@@ -381,10 +377,6 @@ public enum Controller {
                 case "5":
                     //View calendar
                     calendar();
-                    break;
-                case "6":
-                    //Edit notifications
-                    editNotifications();
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.TASKLIST_MAIN, Menus.VOID, "");
@@ -1232,9 +1224,6 @@ public enum Controller {
                         System.out.print("\nPlease enter " + message + " repeat interval for your task in MINUTES\n");
                         return true;
 
-                    case EDIT_NOTIFICATIONS:
-                        notificationsMenu();
-                        return true;
 
                 }
                 break;
@@ -1252,7 +1241,6 @@ public enum Controller {
                     case EDIT_TASK_LIST:
                     case REMOVE_TASKS:
                     case CHANGE_TASK_STATE:
-                    case EDIT_NOTIFICATIONS:
                         taskListMain();
                         return true;
 
@@ -1284,108 +1272,6 @@ public enum Controller {
     }
 
     /**
-     * Menu, where user can turn on/off the notifications,
-     * is formed by {@link #menuUtil(String...)} method.
-     * <p>
-     * If notifications are currently off, user can only turn them on and vice versa.
-     */
-    private void notificationsMenu() {
-        System.out.println("You can change the state of notifications here.");
-        String stateOn = "\nNotifications are currently ON\n";
-        String menuItemIfOn = "Turn notifications OFF";
-
-        String stateOff = "\nNotifications are currently OFF\n";
-        String menuItemIfOff = "Turn notifications ON";
-        if (notificationsAreEnabled) {
-            System.out.println(stateOn);
-            menuUtil(menuItemIfOn);
-        } else {
-            System.out.println(stateOff);
-            menuUtil(menuItemIfOff);
-        }
-
-    }
-
-    /**
-     * The actual editing of notifications
-     * It's state is flipped every time, when user presses '1'
-     * User can use predefined statements, if he types in one of them,
-     * {@link #routeIfControlWord(String, Menus, Menus, String, int...)} will route him to desired menu.
-     */
-    private void editNotifications() {
-        notificationsMenu();
-        String inputChoice;
-        do {
-            inputChoice = getTrimmedInput();
-            switch (inputChoice) {
-                case "1":
-                    notificationsAreEnabled = !notificationsAreEnabled;
-                    pokeNotificationsManager(notificationsAreEnabled);
-                    taskListMain();
-                    if (notificationsAreEnabled) {
-                        log.info("Notifications state was flipped. Notifications are now enabled. " + notificationsAreEnabled);
-                    } else {
-                        log.info("Notifications state was flipped. Notifications are now disabled. " + notificationsAreEnabled);
-                    }
-                    break;
-                default:
-                    boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_NOTIFICATIONS, Menus.VOID, "");
-                    if (!routed)
-                        System.out.print("Incorrect input, please retry.");
-            }
-        } while (true);
-    }
-
-    /**
-     * Every time user enters an app, last state of notification is loaded.
-     * In case file is missing, or there was an error, while reading it,
-     * return value will be false.
-     *
-     * @return true,
-     * if file exists and there were no errors during reading.
-     * <p>
-     * false,
-     * if file is missing or there was an error, while reading from file.
-     */
-    private boolean loadNotificationsState() {
-        boolean state;
-        File oldTasks = new File(SAVED_NOTIFICATIONS_STATE_FILE_NAME);
-        try (DataInputStream dos = new DataInputStream(new BufferedInputStream(new FileInputStream(oldTasks)))) {
-            state = dos.readBoolean();
-        } catch (FileNotFoundException ex) {
-            log.warn("Cannot find file for loading notifications state. " + ex);
-            state = false;
-        } catch (IOException ex) {
-            log.warn("IOException happened while loading notifications state. " + ex);
-            state = false;
-        }
-        if (state) log.info("Notifications state was loaded successfully.");
-        return state;
-    }
-
-    /**
-     * Method, used to save notifications state.
-     * <p>
-     * During next launch of the app notification {@link #loadNotificationsState()}
-     * is going to read saved state, if there was error in this method while writing to the file
-     * default value of false will be returned by {@link #loadNotificationsState()}.
-     *
-     * @param state state of notifications to save.
-     */
-    private void saveNotificationsState(boolean state) {
-        File notificationsState = new File(SAVED_NOTIFICATIONS_STATE_FILE_NAME);
-        makeEmptyFileByName(SAVED_NOTIFICATIONS_STATE_FILE_NAME);
-        try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(notificationsState, false)))) {
-            dos.writeBoolean(notificationsAreEnabled);
-        } catch (FileNotFoundException ex) {
-            log.warn("Cannot find file for saving notifications state. " + ex);
-        } catch (IOException ex) {
-            log.warn("IOException happened while saving notifications state. " + ex);
-        }
-        log.info("Notifications state was saved successfully.");
-    }
-
-    /**
      * Method to start new thread for notifications.
      * <p>
      * If method is called with false argument,
@@ -1408,7 +1294,7 @@ public enum Controller {
         if (state) {
             notifier = new NotificationsManager();
             notifier.setParentController(this);
-            notifier.setDaemon(true);
+            notifier.setPriority(Thread.MAX_PRIORITY);
             notifier.start();
         }
     }
@@ -1424,7 +1310,6 @@ public enum Controller {
             log.error("Exception happened while writing to default storage file while saving upon exiting the application. ", ex);
         }
         log.info("List of tasks was saved before the exit.");
-        saveNotificationsState(notificationsAreEnabled);
         System.out.println("Saving...");
         log.info("Exiting the app.");
         System.out.println("Exiting...");
@@ -1448,7 +1333,6 @@ public enum Controller {
         GET_TITLE,
         CHANGE_TASK_STATE,
         GET_REPEAT_INTERVAL,
-        EDIT_NOTIFICATIONS,
         VOID
     }
 }
