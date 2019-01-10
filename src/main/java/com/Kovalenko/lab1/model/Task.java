@@ -263,11 +263,15 @@ public class Task implements Cloneable, Serializable {
     @Override
     public String toString() {
         if (!this.active) {
-            return "Task \"" + this.title + "\" is inactive";
+            if(!this.isRepeated()) {
+                return "Task \"" + this.title + "\" at " + this.time + " is inactive";
+            } else {
+                return "Task \"" + this.title + "\" from " + this.start + " to " + this.end + " every " + this.repeatInterval + " seconds is inactive";
+            }
         } else if (!repeated) {
-            return "Task \"" + this.title + "\" at " + this.time;
+            return "Task \"" + this.title + "\" at " + this.time + " is active";
         } else {
-            return "Task \"" + this.title + "\" from " + this.start + " to " + this.end + " every " + this.repeatInterval + " seconds";
+            return "Task \"" + this.title + "\" from " + this.start + " to " + this.end + " every " + this.repeatInterval + " seconds is active";
         }
     }
 

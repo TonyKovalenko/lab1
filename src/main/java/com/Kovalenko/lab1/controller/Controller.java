@@ -683,7 +683,7 @@ public enum Controller {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 if (inputChoice.lastIndexOf(':') == 16) {
                     sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                } else  {
+                } else if(inputChoice.lastIndexOf(':') == 13) {
                     sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
                 }
                 sdf.setLenient(false);
