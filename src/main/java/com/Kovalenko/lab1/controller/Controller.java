@@ -131,10 +131,10 @@ public enum Controller {
      * Available typing options: '1' - Creating new empty TaskList
      * <p>
      * '2' - Load from own file, by specifying path to it,
-     * by using  {@link #loadFromUserSpecifiedFile()} method
+     * by using  {@link #loadFromFile(String)} method
      * <p>
      * '3' - Load from last saved default storage file,
-     * by using {@link #loadFromLastSavedFile()} method
+     * by using {@link #loadFromFile(String)} method
      * <p>
      * 'exit', 'quit' - will exit the application (this is predefined statement)
      * <p>
@@ -156,11 +156,14 @@ public enum Controller {
                     break;
                 case "2":
                     log.info("User tried to load list of tasks from custom file.");
-                    loadFromUserSpecifiedFile();
+                    System.out.println("\n - Please enter path to the file with tasks, including it's type. \n For example ../path/to/my/file.txt");
+                    loadFromFile(getTrimmedInput());
+                    log.info("User's specified file was loaded.");
                     break;
                 case "3":
                     log.info("User tried to load list from last saved file.");
-                    loadFromLastSavedFile();
+                    loadFromFile(DEFAULT_STORAGE_FILE_NAME);
+                    log.info("Last saved default storage file was loaded successfully.");
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.CHOOSE_TASKLIST, Menus.VOID, "");
@@ -201,40 +204,30 @@ public enum Controller {
      *
      * @see TaskIO
      */
-    private void loadFromLastSavedFile() {
-        File defaultStorageFile = new File(DEFAULT_STORAGE_FILE_NAME);
-        boolean errorHappened = false;
+    private void loadFromFile(String path) {
+        File readFromFile = new File(path);
         taskList = new ArrayTaskList();
         try {
-            TaskIO.readText(taskList, defaultStorageFile);
+            TaskIO.readText(taskList, readFromFile);
+            System.out.println("File was loaded successfully! ");
         } catch (FileNotFoundException ex) {
-            log.info("Last saved file was not found(either this is the first launch or it was accidentally deleted outside the application). ", ex);
-            errorHappened = true;
+            log.info("File was not found. ", ex);
             try {
-                if (defaultStorageFile.createNewFile()) {
+                if (readFromFile.createNewFile()) {
                     makeEmptyFileByName(DEFAULT_STORAGE_FILE_NAME);
-                    System.out.println("! Seems like the last saved file is missing, "
-                                           + "so new empty file was created and list of tasks is now empty");
                 }
             } catch (IOException ioe) {
                 log.fatal("Exception while creating new empty default storage file. ", ioe);
+            } finally {
+                System.out.println("! Seems like file is missing, "
+                                       + "so new empty default file was created and list of tasks is now empty");
             }
-        } catch (ParseException | StringIndexOutOfBoundsException ex) {
-            errorHappened = true;
+        } catch (IOException | ParseException | StringIndexOutOfBoundsException ex) {
             taskList = new ArrayTaskList();
             makeEmptyFileByName(DEFAULT_STORAGE_FILE_NAME);
-            System.out.println("! Seems like the content of last saved file is corrupted, "
+            System.out.println("! Seems like the content of file is corrupted, "
                                    + "so new empty file was created and list of tasks is now empty");
             log.warn("Last saved file was corrupted outside the application. File was emptied and new list of tasks was created. ", ex);
-        } catch (IOException ex) {
-            errorHappened = true;
-            System.out.println("! Error happened while reading from file, list of tasks is now empty");
-            taskList = new ArrayTaskList();
-            log.warn("There was an exception, while reading from default storage file to list of tasks, empty collection was created. ", ex);
-        }
-        if (!errorHappened) {
-            System.out.println("File was loaded successfully! ");
-            log.info("Last saved default storage file was loaded successfully.");
         }
     }
 
@@ -257,59 +250,6 @@ public enum Controller {
         }
     }
 
-    /**
-     * - Method for adding tasks to {@code taskList}
-     * by loading collection of Tasks from
-     * user specified {@code inputtedFilePath} text file.
-     * <p>
-     * - In case of user specified file is missing,
-     * FileNotFoundException will be thrown by {@link com.Kovalenko.lab1.model.TaskIO#readText(TaskList, File)} method.
-     * So user will be redirected to previous menu {@link #showChooseTaskListMenu()}.
-     * <p>
-     * - In case of user specified file is corrupted,
-     * i.e. format of any Task inside the file is not one of such templates:
-     * <p>
-     * "Task title" at [2014-06-28 18:00:13.000];
-     * "Very ""Good"" title" at [2013-05-10 20:31:20.001] inactive; (quotes in titles are doubled)
-     * "Other task" from [2010-06-01 08:00:00.000] to [2010-09-01 00:00:00.000] every [1 day].
-     * "not active repeated" from [1970-01-02 05:46:40.000] to [1970-01-02 11:20:00.000] every [7 minutes 30 seconds] inactive;     *
-     * <p>
-     * ParseException will be thrown by {@link com.Kovalenko.lab1.model.TaskIO#readText(TaskList, File)} method.
-     * So user will be redirected to previous menu {@link #showChooseTaskListMenu()}.
-     * <p>
-     * - In case of any IOException while reading from user specified file,
-     * user will be redirected to previous menu {@link #showChooseTaskListMenu()}.
-     *
-     * @see TaskIO
-     */
-    private void loadFromUserSpecifiedFile() {
-        String inputtedFilePath;
-        boolean errorHappened = false;
-        System.out.println("\n - Please enter path to the file with tasks, including it's type. \n For example ../path/to/my/file.txt");
-        inputtedFilePath = getTrimmedInput();
-        try {
-            taskList = new ArrayTaskList();
-            TaskIO.readText(taskList, new File(inputtedFilePath));
-        } catch (FileNotFoundException ex) {
-            System.out.println("\n! Sorry, but the specified file was not found. Returning you to previous menu.");
-            log.info("User specified nonexistent file to load tasks from. ", ex);
-            errorHappened = true;
-        } catch (ParseException | StringIndexOutOfBoundsException ex) {
-            System.out.println("\n! Sorry, but the specified file contains incorrect tasks format inside. Returning you to previous menu.");
-            log.info("User's specified file contained incorrect task format. ", ex);
-            errorHappened = true;
-        } catch (IOException ex) {
-            System.out.println("\n! Sorry, the specified file can't be read properly. Returning you to previous menu.");
-            log.warn("User's specified file was not read correctly. ", ex);
-            errorHappened = true;
-        } finally {
-            if (errorHappened) {
-                chooseTaskList();
-            }
-        }
-        System.out.println("File was loaded successfully.");
-        log.info("User's specified file was loaded successfully.");
-    }
 
     /**
      * Main menu, printed using {@link #menuUtil(String...)}
