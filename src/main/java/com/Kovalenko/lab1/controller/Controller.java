@@ -286,7 +286,7 @@ public enum Controller {
     private void loadFromUserSpecifiedFile() {
         String inputtedFilePath;
         boolean errorHappened = false;
-        System.out.println("\n - Please enter path to the file with tasks.");
+        System.out.println("\n - Please enter path to the file with tasks, including it's type. \n For example ../path/to/my/file.txt");
         inputtedFilePath = getTrimmedInput();
         try {
             taskList = new ArrayTaskList();
