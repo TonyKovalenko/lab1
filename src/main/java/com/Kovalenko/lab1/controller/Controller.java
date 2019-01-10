@@ -390,7 +390,7 @@ public enum Controller {
      * Method for viewing current list of tasks
      * <p>
      * If it is empty, there will be a message about it,
-     * if not, list of tasks will be displayed on the screen by using {@link #viewCollection()}.
+     * if not, list of tasks will be displayed on the screen by using {@link #menuUtil(String...)}.
      * <p>
      * After viewing user should press ENTER button,
      * this will redirect him to previous menu by calling {@link #showChooseTaskListMenu()}
@@ -399,20 +399,8 @@ public enum Controller {
         checkIfEmptyCollectionThenStepOut("Nothing to view.");
         System.out.println("\n----------- View menu -----------\n");
         System.out.println("List of all tasks is displayed below.\n");
-        viewCollection(); //will print collection as menu using menuUtil() method
-    }
-
-    /**
-     * Method for viewing list of task as a menu, using {@link #menuUtil(String...)} method.
-     */
-    private void viewCollection() {
-        String[] taskListAsMenu = new String[taskList.size()];
-        int i = 0;
-        for (Task task : taskList) {
-            taskListAsMenu[i] = task.toString();
-            ++i;
-        }
-        menuUtil(taskListAsMenu);
+        String[] collectionItems = menuItemsOutOfCollection(taskList);
+        menuUtil(collectionItems);
     }
 
     /**
@@ -449,14 +437,15 @@ public enum Controller {
      */
     private void removeTasks() {
         checkIfEmptyCollectionThenStepOut("Nothing to remove.");
-        int[] indexesToRemoveTasksFrom = null;
+        Integer[] indexesToRemoveTasksFrom = null;
         showRemoveTasksMenu();
         String inputChoice;
         do {
             inputChoice = getTrimmedInput();
             try {
                 indexesToRemoveTasksFrom = parseNeededRemoveIndexes(inputChoice); //parse user input to get desired remove indexes
-                checkForInvalidRemovalIndexes(indexesToRemoveTasksFrom); //validate just inputted indexes
+                Set<Integer> uniqueRemovalIndexes = checkForInvalidRemovalIndexes(indexesToRemoveTasksFrom); //validate just inputted indexes
+                indexesToRemoveTasksFrom = uniqueRemovalIndexes.toArray(new Integer[]{});
             } catch (NumberFormatException ex) {
                 boolean routed = routeIfControlWord(inputChoice, Menus.REMOVE_TASKS, Menus.VOID, "");
                 if (!routed) {
@@ -509,12 +498,11 @@ public enum Controller {
      */
     private String[] menuItemsOutOfCollection(TaskList tasks) {
         String[] collectionItemsAsMenu = new String[taskList.size()];
-        int index = 0;
-        for (Task task : tasks) {
-            collectionItemsAsMenu[index] = task.toString();
-            ++index;
+        for (int i = 0; i < collectionItemsAsMenu.length; i++) {
+            collectionItemsAsMenu[i] = taskList.getTask(i).toString();
         }
         return collectionItemsAsMenu;
+
     }
 
     /**
@@ -526,10 +514,10 @@ public enum Controller {
      * @throws NumberFormatException in case of any parsing error from String input to int,
      *                               using above defined format(space separation)
      */
-    private int[] parseNeededRemoveIndexes(String input) throws NumberFormatException {
+    private Integer[] parseNeededRemoveIndexes(String input) throws NumberFormatException {
         String trimmedInput = input.trim().replaceAll(" +", " ");
         String s[] = trimmedInput.split(" ");
-        int indexesToRemoveTasksFrom[] = new int[s.length];
+        Integer indexesToRemoveTasksFrom[] = new Integer[s.length];
 
         try {
             for (int i = 0; i < s.length; i++) {
@@ -553,23 +541,26 @@ public enum Controller {
      *                                   User will be notified about wrong indexes by a message, containing all
      *                                   wrong indexes entered.
      */
-    private void checkForInvalidRemovalIndexes(int[] removalIndexes) throws IndexOutOfBoundsException {
+    private Set<Integer> checkForInvalidRemovalIndexes(Integer[] removalIndexes) throws IndexOutOfBoundsException {
         boolean invalidIndexDetected = false;
         ArrayList<Integer> invalidIndexes = new ArrayList<>();
+        Set<Integer> uniqueRemovalIndexes = new HashSet<>();
         for (int i = 0; i < removalIndexes.length; i++) {
             if (removalIndexes[i] < 1 || removalIndexes[i] > taskList.size()) {
                 invalidIndexDetected = true;
                 invalidIndexes.add(removalIndexes[i]);
             }
+            uniqueRemovalIndexes.add(removalIndexes[i]);
         }
         if (invalidIndexDetected) {
             throw new IndexOutOfBoundsException("! There were invalid removal indexes in your input " + Collections.singletonList(invalidIndexes) + ", please retry.");
         }
+        return uniqueRemovalIndexes;
     }
 
     /**
      * Method to confirm or cancel removal from collection.
-     * User should enter 'y' - to confirm deletion, so {@link #removeByIndexesConfirmed(int[])} will be called
+     * User should enter 'y' - to confirm deletion, so {@link #removeByIndexesConfirmed(Integer[])} will be called
      * <p>
      * 'n',
      * 'back',
@@ -578,7 +569,7 @@ public enum Controller {
      *
      * @param indexes validated int[] of indexes that will be used to delete tasks from collection.
      */
-    private void removeTasksByGivenIndexesConfirmation(int[] indexes) {
+    private void removeTasksByGivenIndexesConfirmation(Integer[] indexes) {
         System.out.println("Are you sure you want to remove tasks " + Arrays.toString(indexes)
                                + "? (This action can't be undone.)\n "
                                + " - To confirm - type 'y', to cancel - type 'n' ");
@@ -612,11 +603,9 @@ public enum Controller {
      *
      * @param indexes indexes, by which tasks will be permanently deleted from collection
      */
-    private void removeByIndexesConfirmed(int[] indexes) {
-        int offset = 0;
-        for (int index : indexes) {
-            taskList.remove(index - 1 - offset);
-            offset++;
+    private void removeByIndexesConfirmed(Integer[] indexes) {
+        for (int i = 0, offset = 0; i < indexes.length; i++, offset++) {
+            taskList.remove(indexes[i] - 1 - offset);
         }
     }
 
