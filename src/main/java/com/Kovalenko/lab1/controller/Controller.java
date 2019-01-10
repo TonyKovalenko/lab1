@@ -1101,7 +1101,7 @@ public enum Controller {
                         setListMutated(true);
                     }
                     log.info("Task title was edited successfully.");
-                    editTaskByIndex(index);
+                    taskListMain();
                     break;
                 case "2": //Edit time
                     Date newDate = getDateOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
@@ -1113,7 +1113,7 @@ public enum Controller {
                     }
                     log.info("Task time was edited successfully.");
                     System.out.println("Scheduled time was edited successfully!");
-                    editTaskByIndex(index);
+                    taskListMain();
                     break;
                 case "3": //Change active state
                     synchronized (this) {
@@ -1121,7 +1121,7 @@ public enum Controller {
                         setListMutated(true);
                     }
                     log.info("Task state was edited successfully.");
-                    editTaskByIndex(index);
+                    taskListMain();
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_NON_REPEATED_TASK, Menus.VOID, "");
