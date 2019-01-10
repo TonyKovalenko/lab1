@@ -153,26 +153,25 @@ public enum Controller {
                     taskList = new ArrayTaskList();
                     System.out.println("New empty list was created.");
                     log.info("User created new empty list of tasks.");
-                    pokeNotificationsManager(true);
-                    taskListMain();
                     break;
                 case "2":
                     log.info("User tried to load list of tasks from custom file.");
-                    pokeNotificationsManager(true);
                     loadFromUserSpecifiedFile();
-                    taskListMain();
+                    break;
                 case "3":
                     log.info("User tried to load list from last saved file.");
-                    pokeNotificationsManager(true);
                     loadFromLastSavedFile();
-                    taskListMain();
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.CHOOSE_TASKLIST, Menus.VOID, "");
                     //above method will resolve predefined words and will route the flow of the program
-                    if (!routed)
+                    if (!routed) {
                         System.out.print("Incorrect input, please retry.");
+                    }
+                    continue;
             }
+            pokeNotificationsManager(true);
+            taskListMain();
         } while (true);
     }
 
@@ -380,8 +379,9 @@ public enum Controller {
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.TASKLIST_MAIN, Menus.VOID, "");
-                    if (!routed)
+                    if (!routed) {
                         System.out.print("Incorrect input, please retry.");
+                    }
             }
         } while (true);
     }
@@ -683,7 +683,7 @@ public enum Controller {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 if (inputChoice.lastIndexOf(':') == 16) {
                     sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                } else if(inputChoice.lastIndexOf(':') == 13) {
+                } else if (inputChoice.lastIndexOf(':') == 13) {
                     sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
                 }
                 sdf.setLenient(false);
@@ -722,8 +722,9 @@ public enum Controller {
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.GET_TITLE, stepOutTo, message, indexIfEditing);
-                    if (!routed)
+                    if (!routed) {
                         return inputChoice;
+                    }
             }
         } while (true);
     }
@@ -837,8 +838,9 @@ public enum Controller {
                     return false;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.CHANGE_TASK_STATE, Menus.VOID, str);
-                    if (!routed)
+                    if (!routed) {
                         System.out.print("Wrong input, please retry.");
+                    }
             }
         } while (true);
     }
@@ -990,7 +992,6 @@ public enum Controller {
                         setListMutated(true);
                     }
                     log.info("Task title was edited successfully.");
-                    taskListMain();
                     break;
                 case "2": //Edit time
                     synchronized (this) {
@@ -998,7 +999,6 @@ public enum Controller {
                         setListMutated(true);
                     }
                     log.info("Task times was edited successfully.");
-                    taskListMain();
                     break;
                 case "3": //Change repeat interval
                     int newRepeatInterval = getRepeatIntervalOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
@@ -1008,7 +1008,6 @@ public enum Controller {
                     }
                     log.info("Task repeat interval was edited successfully.");
                     System.out.println("Repeat interval was edited successfully!");
-                    taskListMain();
                     break;
                 case "4": //Change active state
                     synchronized (this) {
@@ -1016,13 +1015,15 @@ public enum Controller {
                         setListMutated(true);
                     }
                     log.info("Task state was edited successfully.");
-                    taskListMain();
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_REPEATED_TASK, Menus.VOID, "", index);
-                    if (!routed)
+                    if (!routed) {
                         System.out.println("Incorrect input, please retry.");
+                        continue;
+                    }
             }
+            taskListMain();
         } while (true);
     }
 
@@ -1101,7 +1102,6 @@ public enum Controller {
                         setListMutated(true);
                     }
                     log.info("Task title was edited successfully.");
-                    taskListMain();
                     break;
                 case "2": //Edit time
                     Date newDate = getDateOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
@@ -1113,7 +1113,6 @@ public enum Controller {
                     }
                     log.info("Task time was edited successfully.");
                     System.out.println("Scheduled time was edited successfully!");
-                    taskListMain();
                     break;
                 case "3": //Change active state
                     synchronized (this) {
@@ -1121,13 +1120,15 @@ public enum Controller {
                         setListMutated(true);
                     }
                     log.info("Task state was edited successfully.");
-                    taskListMain();
                     break;
                 default:
-                    boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_NON_REPEATED_TASK, Menus.VOID, "");
-                    if (!routed)
+                    boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_NON_REPEATED_TASK, Menus.VOID, "", index);
+                    if (!routed) {
                         System.out.println("Incorrect input, please retry.");
+                        continue;
+                    }
             }
+            taskListMain();
         } while (true);
     }
 
@@ -1219,14 +1220,12 @@ public enum Controller {
                         return true;
 
                     case CHANGE_TASK_STATE:
-                        System.out.print("\nPlease enter 'y' if your task is repeated, enter 'n' otherwise\n");
+                        System.out.print("\nPlease enter 'y' if your task is active, enter 'n' otherwise\n");
                         return true;
 
                     case GET_REPEAT_INTERVAL:
                         System.out.print("\nPlease enter " + message + " repeat interval for your task in MINUTES\n");
                         return true;
-
-
                 }
                 break;
 
