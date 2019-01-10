@@ -98,7 +98,8 @@ public enum Controller {
     private String getTrimmedInput() {
         System.out.print("\n>>> Your input: ");
         String input = "";
-        BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));;
+        BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
+        ;
         do {
             try {
                 input = buff.readLine();
@@ -185,7 +186,7 @@ public enum Controller {
      * <p>
      * - In case of last saved storage file is missing,
      * FileNotFoundException will be thrown by {@link com.Kovalenko.lab1.model.TaskIO#readText(TaskList, File)} method
-     * So instead new empty default storage file will be created {@link #makeEmptyFileByName(String)},
+     * So instead new empty default storage file will be created,
      * and {@code taskList} will be empty too.
      * <p>
      * - In case of last saved storage file is corrupted,
@@ -214,7 +215,8 @@ public enum Controller {
             log.info("File was not found. ", ex);
             try {
                 if (readFromFile.createNewFile()) {
-                    makeEmptyFileByName(DEFAULT_STORAGE_FILE_NAME);
+                    File defaultStorage = new File(DEFAULT_STORAGE_FILE_NAME);
+                    defaultStorage.createNewFile();
                 }
             } catch (IOException ioe) {
                 log.fatal("Exception while creating new empty default storage file. ", ioe);
@@ -224,31 +226,36 @@ public enum Controller {
             }
         } catch (IOException | ParseException | StringIndexOutOfBoundsException ex) {
             taskList = new ArrayTaskList();
-            makeEmptyFileByName(DEFAULT_STORAGE_FILE_NAME);
+            try {
+                File defaultStorage = new File(DEFAULT_STORAGE_FILE_NAME);
+                defaultStorage.createNewFile();
+            } catch (IOException ioe) {
+                log.fatal("Exception while creating new empty default storage file. ", ioe);
+            }
             System.out.println("! Seems like the content of file is corrupted, "
                                    + "so new empty file was created and list of tasks is now empty");
             log.warn("Last saved file was corrupted outside the application. File was emptied and new list of tasks was created. ", ex);
         }
     }
 
-    /**
-     * Method to create new empty file
-     * or to empty existing one
-     *
-     * @param name name of the file,
-     *             that will be either created empty or
-     *             will be emptied after calling this method
-     */
-    private void makeEmptyFileByName(String name) {
-        File defaultFile = new File(name);
-        try {
-            PrintWriter writer = new PrintWriter(defaultFile);
-            writer.print("");
-            writer.close();
-        } catch (IOException ex) {
-            log.fatal("Exception happened, while emptying or creating new file: " + name, ex);
-        }
-    }
+//    /**
+//     * Method to create new empty file
+//     * or to empty existing one
+//     *
+//     * @param name name of the file,
+//     *             that will be either created empty or
+//     *             will be emptied after calling this method
+//     */
+//    private void makeEmptyFileByName(String name) {
+//        File defaultFile = new File(name);
+//        try {
+//            PrintWriter writer = new PrintWriter(defaultFile);
+//            writer.print("");
+//            writer.close();
+//        } catch (IOException ex) {
+//            log.fatal("Exception happened, while emptying or creating new file: " + name, ex);
+//        }
+//    }
 
 
     /**
