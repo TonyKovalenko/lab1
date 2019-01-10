@@ -407,7 +407,6 @@ public enum Controller {
         System.out.println("\n----------- View menu -----------\n");
         System.out.println("List of all tasks is displayed below.\n");
         viewCollection(); //will print collection as menu using menuUtil() method
-        waitForEnterButton();
     }
 
     /**
@@ -442,7 +441,6 @@ public enum Controller {
     private void checkIfEmptyCollectionThenStepOut(String str) {
         if (taskList.size() == 0) {
             System.out.println("\nYour list of tasks is empty at the moment. " + str);
-            waitForEnterButton();
             taskListMain();
         }
     }
@@ -603,7 +601,7 @@ public enum Controller {
                     }
                     System.out.println(" --- Tasks were deleted successfully! --- ");
                     log.info("User successfully deleted tasks from list.");
-                    removeTasks();
+                    taskListMain();
                     break;
                 case "n":
                 case "back":
@@ -772,7 +770,6 @@ public enum Controller {
                 System.out.println(" ------------------------------------\n");
             });
         }
-        waitForEnterButton();
         taskListMain();
     }
 
@@ -822,7 +819,6 @@ public enum Controller {
             taskList.add(taskToAdd);
         }
         System.out.println("Your task was successfully added!");
-        waitForEnterButton();
         log.info("New task was added to list successfully.");
         taskListMain();
     }
@@ -999,7 +995,7 @@ public enum Controller {
                         setListMutated(true);
                     }
                     log.info("Task title was edited successfully.");
-                    editTaskByIndex(index);
+                    taskListMain();
                     break;
                 case "2": //Edit time
                     synchronized (this) {
@@ -1007,7 +1003,7 @@ public enum Controller {
                         setListMutated(true);
                     }
                     log.info("Task times was edited successfully.");
-                    editTaskByIndex(index);
+                    taskListMain();
                     break;
                 case "3": //Change repeat interval
                     int newRepeatInterval = getRepeatIntervalOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
@@ -1017,7 +1013,7 @@ public enum Controller {
                     }
                     log.info("Task repeat interval was edited successfully.");
                     System.out.println("Repeat interval was edited successfully!");
-                    editTaskByIndex(index);
+                    taskListMain();
                     break;
                 case "4": //Change active state
                     synchronized (this) {
@@ -1025,7 +1021,7 @@ public enum Controller {
                         setListMutated(true);
                     }
                     log.info("Task state was edited successfully.");
-                    editTaskByIndex(index);
+                    taskListMain();
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_REPEATED_TASK, Menus.VOID, "", index);
@@ -1360,7 +1356,7 @@ public enum Controller {
                 case "1":
                     notificationsAreEnabled = !notificationsAreEnabled;
                     pokeNotificationsManager(notificationsAreEnabled);
-                    notificationsMenu();
+                    taskListMain();
                     if (notificationsAreEnabled) {
                         log.info("Notifications state was flipped. Notifications are now enabled. " + notificationsAreEnabled);
                     } else {
