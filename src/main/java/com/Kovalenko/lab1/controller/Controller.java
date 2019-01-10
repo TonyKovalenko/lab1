@@ -666,7 +666,7 @@ public enum Controller {
      * @return in case of correct input, valid Date object will be returned
      */
     private Date getDateOrStepOutTo(Menus stepOutTo, String message, int... indexIfEditing) {
-        System.out.print("\nPlease enter " + message + " in following format 'YYYY-mm-DD HH:mm:ss' \n");
+        System.out.print("\nPlease enter " + message + " in following format 'YYYY-mm-DD HH:mm:ss', you may not enter seconds \n");
         String inputChoice;
         Date actualDate = new Date();
         boolean correctInput;
@@ -674,15 +674,17 @@ public enum Controller {
             correctInput = true;
             inputChoice = getTrimmedInput();
             try {
-                String pattern = "^\\d{4}-\\d{2}-\\d{2}(\\s\\d{2}:\\d{2}:\\d{2})?$";
+                String pattern = "^\\d{4}-\\d{2}-\\d{2}(\\s\\d{2}:\\d{2}(:\\d{2})?)?";
                 boolean matches = Pattern.matches(pattern, inputChoice);
                 if (!matches) {
                     log.info("Invalid date format was inputted. " + inputChoice);
                     throw new ParseException("Date wasn't matched with the pattern", -1);
                 }
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                if (inputChoice.indexOf(':') == 13) {
+                if (inputChoice.lastIndexOf(':') == 16) {
                     sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                } else  {
+                    sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
                 }
                 sdf.setLenient(false);
                 actualDate = sdf.parse(inputChoice);
@@ -1209,7 +1211,7 @@ public enum Controller {
                         return true;
 
                     case GET_DATE:
-                        System.out.print("Please enter " + message + " in following format 'YYYY-mm-dd HH:mm:ss'");
+                        System.out.print("Please enter " + message + " in following format 'YYYY-mm-dd HH:mm:ss', you may not enter the seconds");
                         return true;
 
                     case GET_TITLE:
@@ -1315,7 +1317,6 @@ public enum Controller {
         System.out.println("Exiting...");
         System.exit(0);
     }
-
 
     /**
      * Enum that represents different menus, available to user,
