@@ -853,7 +853,7 @@ public enum Controller {
     }
 
     /**
-     * Method to get repeat interval for the task in seconds.
+     * Method to get repeat interval for the task in minutes.
      * User should eventually enter valid interval value or step out to previous menu.
      *
      * @param stepOutTo      the menu, we can step out to from current menu, using {@link #routeIfControlWord(String, Menus, Menus, String, int...)}
@@ -862,7 +862,7 @@ public enum Controller {
      * @return parsed correct int value as repeat interval
      */
     private int getRepeatIntervalOrStepOutTo(Menus stepOutTo, String message, int... indexIfEditing) {
-        System.out.print("\nPlease enter " + message + " repeat interval for your task in SECONDS\n");
+        System.out.print("\nPlease enter " + message + " repeat interval for your task in MINUTES\n");
         String inputChoice;
         int interval;
         do {
@@ -876,7 +876,7 @@ public enum Controller {
                     System.out.println("You've entered repeat interval in wrong format, please retry.");
                     continue;
                 }
-                return interval;
+                return interval*60;
             }
         } while (true);
     }
@@ -1232,7 +1232,7 @@ public enum Controller {
                         return true;
 
                     case GET_REPEAT_INTERVAL:
-                        System.out.print("\nPlease enter " + message + " repeat interval for your task in SECONDS\n");
+                        System.out.print("\nPlease enter " + message + " repeat interval for your task in MINUTES\n");
                         return true;
 
                     case EDIT_NOTIFICATIONS:
