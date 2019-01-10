@@ -98,7 +98,7 @@ public enum Controller {
     private String getTrimmedInput() {
         System.out.print("\n>>> Your input: ");
         String input = "";
-        BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));;
         do {
             try {
                 input = buff.readLine();
@@ -107,7 +107,7 @@ public enum Controller {
                 System.out.print("! Cannot read input because of internal error, please retry the input.");
             }
         } while (input == null);
-
+        buff = null;
         return input.trim();
     }
 
@@ -118,7 +118,7 @@ public enum Controller {
      * Menu is printed by using {@link #menuUtil(String...)} method
      */
     private void showChooseTaskListMenu() {
-        System.out.println("\n - Please choose a further action by typing it's number in following menu \u2193 \n");
+        System.out.println("\n - Please choose a further action by typing it's number in following menu \n");
         String menuItemCreateEmptyTaskList = "Create new empty list of tasks.";
         String menuItemLoadTaskListFromFile = "Load list of tasks from existing file.";
         String menuItemUseLastSavedTaskList = "Continue with last saved list of tasks.";
