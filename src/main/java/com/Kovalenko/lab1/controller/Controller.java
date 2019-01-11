@@ -264,15 +264,6 @@ public enum Controller {
     }
 
     /**
-     * Util method, waits for ENTER press, then returns
-     */
-    private void waitForEnterButton() {
-        System.out.println("\nHit ENTER to go to previous menu.");
-        Scanner scan = new Scanner(System.in);
-        scan.nextLine();
-    }
-
-    /**
      * Method to check if collection is empty(i.e. has no task inside)
      * {@link TaskList#size()}
      *
