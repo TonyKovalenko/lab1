@@ -111,13 +111,11 @@ public class ArrayTaskList extends TaskList implements Cloneable, Iterable<Task>
                     System.arraycopy(this.taskArray, 1, newTaskArray, 0, this.size() - 1);
                     this.taskArray = newTaskArray.clone();
                     --lastTaskIndex;
-                    //continue;
                     return true;
                 } else if (i == lastTaskIndex) {
                     System.arraycopy(this.taskArray, 0, newTaskArray, 0, this.size() - 1);
                     --lastTaskIndex;
                     this.taskArray = newTaskArray.clone();
-                    //continue;
                     return true;
                 }
                 System.arraycopy(this.taskArray, 0, newTaskArray, 0, i);
@@ -160,7 +158,7 @@ public class ArrayTaskList extends TaskList implements Cloneable, Iterable<Task>
      * @return list of suitable Tasks
      * @see Task
      * @see TaskList
-     * @throws IllegalArgumentException if {@code from} time is not less than {@to} time value
+     * @throws IllegalArgumentException if {@code from} time is not less than {@code to} time value
      */
     public Iterable<Task> incoming(Date from, Date to) throws IllegalArgumentException {
         return super.incoming(from,to);

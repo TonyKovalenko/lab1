@@ -87,7 +87,6 @@ public class Task implements Cloneable, Serializable {
      */
     public void setTitle(String title) throws IllegalArgumentException {
         if (title == null /*|| title.trim().equals("")*/ || title.indexOf('\n') != -1) {
-            //System.out.println("You may want to change a name of task, as it consists of spaces only, or has newline symbols in it");
             throw new IllegalArgumentException("You may want to change a name of task, as it empty(null), or consists of spaces only, or has newline symbols in it");
         }
         this.title = title;
@@ -246,11 +245,8 @@ public class Task implements Cloneable, Serializable {
             for (long i = this.start.getTime(); i < this.end.getTime(); i += getMillisecondsRepeatInterval()) {
                 if ((time.getTime() >= i) && (time.getTime() < i + getMillisecondsRepeatInterval())) {
                     return (i + getMillisecondsRepeatInterval() > this.end.getTime()) ? null : new Date(i + getMillisecondsRepeatInterval());
-                    //return new Date(i + repeatInterval);
                 }
             }
-            //int nextTime = ((( time + this.start ) / this.repeatInterval ) * this.repeatInterval ) + this.start;
-            //return nextTime > this.end ? -1 : nextTime;
         }
         return null;
     }

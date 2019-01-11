@@ -148,8 +148,7 @@ public final class TaskIO {
     public static void write(TaskList tasks, Writer outWriter) throws IOException {
         Iterator<Task> iter = tasks.iterator();
         Task currentTask;
-        //PrintWriter pOut = new PrintWriter(out);
-        StringBuilder lineToWrite = new StringBuilder();
+        StringBuilder lineToWrite;
         try (Writer out = new PrintWriter(outWriter)) {
             while (iter.hasNext()) {
                 currentTask = iter.next();
@@ -176,7 +175,6 @@ public final class TaskIO {
                         lineToWrite.append(";\n");
                     } else {
                         lineToWrite.append(".");
-                        //lineToWrite.insert(lineToWrite.lastIndexOf(" "),".");
                     }
                     out.write(lineToWrite.toString());
                     continue;
@@ -212,16 +210,7 @@ public final class TaskIO {
         int lastQuoteIndex;
         String repetition;
         try (BufferedReader bufferedReader = new BufferedReader(in)) {
-//            while (bufferedReader.read() != -1) {
-//                System.out.print((char)bufferedReader.read());
-//            }
             currentLine = bufferedReader.readLine();
-//            Scanner scan = new Scanner(in)
-//            scan.useDelimiter(Pattern.compile(";"));
-//            while (scan.hasNext()) {
-//                currentLine = scan.next();
-//
-//            }
             while (currentLine != null) {
                 lastQuoteIndex = currentLine.lastIndexOf('"');
                 title = currentLine.substring(1, lastQuoteIndex);

@@ -84,17 +84,6 @@ public class Tasks {
             }
 
         }
-//        Set<Task> setOfTasks = new HashSet<>();
-//        for (Date dateInSet : setOfSuitableDates) {
-//            for (Task task : tasks) {
-//                if(task.isActive() && task.isAtDate(dateInSet)) {
-//                    setOfTasks.add(task);
-//                }
-//            }
-//            calendarToReturn.put(dateInSet, setOfTasks);
-//            setOfTasks = new HashSet<>();
-//        }
-//        System.out.println(calendarToReturn);
         return calendarToReturn;
     }
 }

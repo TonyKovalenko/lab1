@@ -145,10 +145,6 @@ public class LinkedTaskList extends TaskList implements TaskListable, Cloneable,
             }
             taskInList = ((FilledTaskList) restTasks).getFirst();
             restTasks = ((FilledTaskList) restTasks).getRest();
-            //try {
-            //    restTasks = ((FilledTaskList) restTasks).getRest();
-            //} catch (ClassCastException e) {
-            //}
 
         }
         return indexToReturn;
@@ -205,15 +201,11 @@ public class LinkedTaskList extends TaskList implements TaskListable, Cloneable,
             }
             ((FilledTaskList) next).setRest(EmptyTaskList.INSTANCE);
             lastTaskIndex--;
-            //indexOfRemovableTask = indexOf(task);
-            //continue;
             return true;
         } else if (indexOfRemovableTask == lastTaskIndex) {
             TaskListable next = getTaskList(lastTaskIndex);
             value = ((FilledTaskList) next).getRest();
             lastTaskIndex--;
-            //indexOfRemovableTask = indexOf(task);
-            //continue;
             return true;
         } else {
             int nextIndex = indexOfRemovableTask + 1;
@@ -224,8 +216,6 @@ public class LinkedTaskList extends TaskList implements TaskListable, Cloneable,
             }
             ((FilledTaskList) next).setRest(((FilledTaskList) current).getRest());
             lastTaskIndex--;
-            //indexOfRemovableTask = indexOf(task);
-            //continue;
             return true;
         }
     }
@@ -272,7 +262,6 @@ public class LinkedTaskList extends TaskList implements TaskListable, Cloneable,
             return EmptyTaskList.INSTANCE;
         } else if (index > this.size()) {
             System.out.println("Invalid index(exceeds list size)");
-            //return EmptyTaskList.getInstance();
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
         } else {
             index = index - size() + 1;
