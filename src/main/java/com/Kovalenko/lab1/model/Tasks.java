@@ -4,18 +4,20 @@ import java.util.*;
 
 /**
  * Class with static functions to work with collections of Tasks
+ *
  * @see Task
  */
-public final class Tasks {
+public class Tasks {
 
-    private Tasks(){}
+    private Tasks() {
+    }
 
     /**
-     * Method to return Collection of active Tasks, contained between {@code} and {@to} dates
+     * Method to return Collection of active Tasks, contained between {@code from} and {@code to} dates
      *
-     * @param tasks TaskList, should impement Iterable interface
-     * @param from Date, from which to search for active Tasks
-     * @param to Date, to whick to search for active Tasks
+     * @param tasks TaskList, should implement Iterable interface
+     * @param from  Date, from which to search for active Tasks
+     * @param to    Date, to which to search for active Tasks
      * @return Collection of incoming Tasks between specified dates
      * @see Task
      * @see Iterable
@@ -40,7 +42,6 @@ public final class Tasks {
     }
 
     /**
-     *
      * Method to return SortedMap of all tasks, contained between {@code from} and {@code to} dates
      * All the tasks, which have same notification date will be contained in {@code calendarToReturn}
      * as Set<Task> {@code newSet} by Date key {@code timeToAdd}
@@ -57,23 +58,25 @@ public final class Tasks {
         Set<Task> setOfTasks = new HashSet<>();
 
         Iterator<Task> iter = tasks.iterator();
-        while(iter.hasNext()) {
+        while (iter.hasNext()) {
             currentTask = iter.next();
-            if(currentTask.isActive() && currentTask.getEndTime().after(from)) {
+            if (currentTask.isActive() && currentTask.getEndTime().after(from)) {
                 while (Task.compareDates(currentTask.nextTimeAfter(currentFromTime), to) <= 0) {
                     timeToAdd = currentTask.nextTimeAfter(currentFromTime);
-                    if(timeToAdd == null) {
+                    if (timeToAdd == null) {
                         break;
                     }
-                    if(calendarToReturn.get(timeToAdd) != null) {
-                       Set<Task> newSet = calendarToReturn.get(timeToAdd);
-                       newSet.add(currentTask);
-                       calendarToReturn.put(timeToAdd, newSet);
+                    if (calendarToReturn.get(timeToAdd) != null) {
+                        Set<Task> newSet = calendarToReturn.get(timeToAdd);
+                        newSet.add(currentTask);
+                        calendarToReturn.put(timeToAdd, newSet);
                     } else {
                         setOfTasks.add(currentTask);
                         calendarToReturn.put(timeToAdd, setOfTasks);
                     }
-                    if(!currentTask.isRepeated()) { break;}
+                    if (!currentTask.isRepeated()) {
+                        break;
+                    }
                     currentFromTime = new Date(timeToAdd.getTime());
                 }
                 currentFromTime = from;

@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  * @see LinkedTaskList
  * @since 12-9-2018
  */
-public final class TaskIO {
+public class TaskIO {
 
     private TaskIO() {
     }
