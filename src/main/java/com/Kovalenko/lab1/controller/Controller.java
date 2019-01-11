@@ -339,9 +339,9 @@ public enum Controller {
      * @see TaskList
      */
     private String[] menuItemsOutOfCollection(TaskList tasks) {
-        String[] collectionItemsAsMenu = new String[taskList.size()];
+        String[] collectionItemsAsMenu = new String[tasks.size()];
         for (int i = 0; i < collectionItemsAsMenu.length; i++) {
-            collectionItemsAsMenu[i] = taskList.getTask(i).toString();
+            collectionItemsAsMenu[i] = tasks.getTask(i).toString();
         }
         return collectionItemsAsMenu;
 
@@ -361,13 +361,10 @@ public enum Controller {
         String s[] = trimmedInput.split(" ");
         Integer indexesToRemoveTasksFrom[] = new Integer[s.length];
 
-        try {
+
             for (int i = 0; i < s.length; i++) {
                 indexesToRemoveTasksFrom[i] = Integer.parseInt(s[i]);
             }
-        } catch (NumberFormatException ex) {
-            throw ex;
-        }
 
         return indexesToRemoveTasksFrom;
     }
@@ -1046,7 +1043,8 @@ public enum Controller {
         try {
             notifier.interrupt();
             notifier.join();
-        } catch (InterruptedException ignored) {
+        } catch (InterruptedException ex) {
+            log.info("Notifications manager was interrupted, when poked", ex);
         }
         if (state) {
             notifier = new NotificationsManager();
