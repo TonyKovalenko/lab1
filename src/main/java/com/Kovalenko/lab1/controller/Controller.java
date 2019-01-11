@@ -27,6 +27,7 @@ public enum Controller {
     private volatile ArrayTaskList taskList;
     private volatile Boolean listMutated;
     private NotificationsManager notifier;
+    private String[] menuItems;
 
     Controller() {
         listMutated = false;
@@ -82,10 +83,9 @@ public enum Controller {
      */
     private void menuUtil(String... items) {
         String menuFormat = "#%d\t%s%n";
-        int i = 0;
 
-        for (String item : items) {
-            System.out.printf(menuFormat, ++i, item);
+        for (int i = 0; i < items.length; ++i) {
+            System.out.printf(menuFormat, i + 1, items[i]);
         }
     }
 
@@ -120,11 +120,13 @@ public enum Controller {
      */
     private void showChooseTaskListMenu() {
         System.out.println("\n - Please choose a further action by typing it's number in following menu \n");
-        String menuItemCreateEmptyTaskList = "Create new empty list of tasks.";
-        String menuItemLoadTaskListFromFile = "Load list of tasks from existing file.";
-        String menuItemUseLastSavedTaskList = "Continue with last saved list of tasks.";
+        menuItems = new String[]{
+            "Create new empty list of tasks.",
+            "Load list of tasks from existing file.",
+            "Continue with last saved list of tasks.",
+        };
 
-        menuUtil(menuItemCreateEmptyTaskList, menuItemLoadTaskListFromFile, menuItemUseLastSavedTaskList);
+        menuUtil(menuItems);
     }
 
     /**
@@ -238,25 +240,6 @@ public enum Controller {
         }
     }
 
-//    /**
-//     * Method to create new empty file
-//     * or to empty existing one
-//     *
-//     * @param name name of the file,
-//     *             that will be either created empty or
-//     *             will be emptied after calling this method
-//     */
-//    private void makeEmptyFileByName(String name) {
-//        File defaultFile = new File(name);
-//        try {
-//            PrintWriter writer = new PrintWriter(defaultFile);
-//            writer.print("");
-//            writer.close();
-//        } catch (IOException ex) {
-//            log.fatal("Exception happened, while emptying or creating new file: " + name, ex);
-//        }
-//    }
-
 
     /**
      * Main menu, printed using {@link #menuUtil(String...)}
@@ -265,14 +248,15 @@ public enum Controller {
      */
     private void showTaskListMainMenu() {
         System.out.println("\n---------- Main menu -----------");
-        System.out.println("\n - Please choose what do you want to do next \u2193 \n");
-        String menuItemViewTasks = "View all your tasks.";
-        String menuItemAddTask = "Add a new task to list.";
-        String menuItemRemoveTask = "Remove tasks from list.";
-        String menuItemEditTask = "Edit task in list.";
-        String menuItemViewCalendar = "View calendar.";
-
-        menuUtil(menuItemViewTasks, menuItemAddTask, menuItemRemoveTask, menuItemEditTask, menuItemViewCalendar);
+        System.out.println("\n - Please choose what do you want to do next \n");
+        String[] menuItems = new String[]{
+            "View all your tasks.",
+            "Add a new task to list.",
+            "Remove tasks from list.",
+            "Edit task in list.",
+            "View calendar.",
+        };
+        menuUtil(menuItems);
     }
 
     /**
@@ -971,17 +955,14 @@ public enum Controller {
      */
     private void editOptionsForRepeatedTask(Task editedTask) {
         System.out.println("\n - Choose what do you want to edit in your task.\n");
-        String editTitle = "Edit the title.";
-        String editStartTime = "Edit times for the task.";
-        String editRepeatInterval = "Edit repeat interval for the task.";
-        String isActive;
-        if (editedTask.isActive()) {
-            isActive = "Make your task inactive.";
-        } else {
-            isActive = "Make your task active.";
-        }
+        menuItems = new String[]{
+            "Edit the title.",
+            "Edit times for the task.",
+            "Edit repeat interval for the task.",
+            editedTask.isActive() ? "Make your task inactive." : "Make your task active.",
+        };
 
-        menuUtil(editTitle, editStartTime, editRepeatInterval, isActive);
+        menuUtil(menuItems);
     }
 
     /**
@@ -1077,16 +1058,13 @@ public enum Controller {
      */
     private void editOptionsForNonRepeatedTask(Task editedTask) {
         System.out.println("\n - Choose what do you want to edit in your task.\n");
-        String editTitle = "Edit the title.";
-        String editStartTime = "Edit scheduled time for the task.";
-        String isActive;
-        if (editedTask.isActive()) {
-            isActive = "Make your task inactive.";
-        } else {
-            isActive = "Make your task active.";
-        }
+        menuItems = new String[]{
+            "Edit the title.",
+            "Edit scheduled time for the task.",
+            editedTask.isActive() ? "Make your task inactive." : "Make your task active.",
+        };
 
-        menuUtil(editTitle, editStartTime, isActive);
+        menuUtil(menuItems);
     }
 
     /**
@@ -1272,4 +1250,3 @@ public enum Controller {
         VOID
     }
 }
-
