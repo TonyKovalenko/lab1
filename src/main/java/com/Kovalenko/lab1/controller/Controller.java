@@ -28,7 +28,7 @@ public enum Controller {
     private volatile Boolean listMutated;
     private NotificationsManager notifier;
     private String[] menuItems;
-    private String inputChoice;
+    String inputChoice;
 
     Controller() {
         listMutated = false;
@@ -61,7 +61,7 @@ public enum Controller {
 
     /**
      * Utility method for printing menu, using {@code menuFormat}.
-     * <p>
+     *
      * In following methods, user can select menu items
      * by typing it's corresponding number to console, e.g. 1, 2, 3, etc.
      *
@@ -157,7 +157,8 @@ public enum Controller {
      * - Method for adding tasks to {@code taskList}
      * by loading collection of Tasks from file
      *
-     * @param path path to file to load tasks from
+     * @param path
+     *        path to file to load tasks from
      * @see TaskIO
      */
     private void loadFromFile(String path) {
@@ -201,7 +202,7 @@ public enum Controller {
     private void showTaskListMainMenu() {
         System.out.println("\n---------- Main menu -----------");
         System.out.println("\n - Please choose what do you want to do next \n");
-        menuItems = new String[]{
+        String[] menuItems = new String[]{
             "View all your tasks.",
             "Add a new task to list.",
             "Remove tasks from list.",
@@ -263,10 +264,18 @@ public enum Controller {
     }
 
     /**
+     * Util method, waits for ENTER press, then returns
+     */
+    private void waitForEnterButton() {
+        System.out.println("\nHit ENTER to go to previous menu.");
+        Scanner scan = new Scanner(System.in);
+        scan.nextLine();
+    }
+
+    /**
      * Method to check if collection is empty(i.e. has no task inside)
      * {@link TaskList#size()}
      *
-     * @param str string used in informational statement.
      * @see TaskList
      */
     private void checkIfEmptyCollectionThenStepOut(String str) {
@@ -316,8 +325,8 @@ public enum Controller {
         System.out.println("----------- Remove menu -----------");
         String[] collectionItemsAsMenu = menuItemsOutOfCollection(taskList);
         System.out.println("\n - Choose the number of a task you want to remove from list");
-        System.out.println("(Note, you can remove several tasks by typing their numbers separated by spaces\n"
-                               + "e.g. 1 3 5 - will remove tasks by number 1, 3 and 5 )\n");
+        System.out.println("(Note, you can remove several tasks by typing their numbers separated by spaces\n" +
+                               "e.g. 1 3 5 - will remove tasks by number 1, 3 and 5 )\n");
         menuUtil(collectionItemsAsMenu);
     }
 
@@ -330,9 +339,9 @@ public enum Controller {
      * @see TaskList
      */
     private String[] menuItemsOutOfCollection(TaskList tasks) {
-        String[] collectionItemsAsMenu = new String[tasks.size()];
+        String[] collectionItemsAsMenu = new String[taskList.size()];
         for (int i = 0; i < collectionItemsAsMenu.length; i++) {
-            collectionItemsAsMenu[i] = tasks.getTask(i).toString();
+            collectionItemsAsMenu[i] = taskList.getTask(i).toString();
         }
         return collectionItemsAsMenu;
 
@@ -349,12 +358,15 @@ public enum Controller {
      */
     private Integer[] parseNeededRemoveIndexes(String input) throws NumberFormatException {
         String trimmedInput = input.trim().replaceAll(" +", " ");
-        String[] s = trimmedInput.split(" ");
-        Integer[] indexesToRemoveTasksFrom = new Integer[s.length];
+        String s[] = trimmedInput.split(" ");
+        Integer indexesToRemoveTasksFrom[] = new Integer[s.length];
 
-
-        for (int i = 0; i < s.length; i++) {
-            indexesToRemoveTasksFrom[i] = Integer.parseInt(s[i]);
+        try {
+            for (int i = 0; i < s.length; i++) {
+                indexesToRemoveTasksFrom[i] = Integer.parseInt(s[i]);
+            }
+        } catch (NumberFormatException ex) {
+            throw ex;
         }
 
         return indexesToRemoveTasksFrom;
@@ -370,7 +382,6 @@ public enum Controller {
      *                                   indexing in collection starting from 0.
      *                                   User will be notified about wrong indexes by a message, containing all
      *                                   wrong indexes entered.
-     * @return unique removal indexes
      */
     private Set<Integer> checkForInvalidRemovalIndexes(Integer[] removalIndexes) throws IndexOutOfBoundsException {
         boolean invalidIndexDetected = false;
@@ -493,9 +504,8 @@ public enum Controller {
                 correctInput = false;
                 boolean routed = routeIfControlWord(inputChoice, Menus.GET_DATE, stepOutTo, message, indexIfEditing);
                 //depending on the menu, predefined statements can route to different menus, so we use above method
-                if (!routed) {
+                if (!routed)
                     System.out.print("! You've entered " + message + " in invalid format, please retry.");
-                }
             }
             if (correctInput) {
                 return actualDate;
@@ -511,7 +521,6 @@ public enum Controller {
      * @param stepOutTo      the menu, we can step out to from current menu, using {@link #routeIfControlWord(String, Menus, Menus, String, int...)}
      * @param message        String value, that can be used in the menu messages, we are using the method in
      * @param indexIfEditing in case we use this method in edit menu, we need to provide index of task to edit, when we step out
-     * @return title for the task
      */
     private String getTitleOrStepOutTo(Menus stepOutTo, String message, int... indexIfEditing) {
         System.out.print("\nPlease enter title for your " + message + " task\n");
@@ -678,9 +687,8 @@ public enum Controller {
                     continue;
                 }
             }
-            if (!routed) {
+            if (!routed)
                 editTaskByIndex(indexToEditTask - 1);
-            }
             routed = false;
         } while (true);
     }
@@ -1039,7 +1047,7 @@ public enum Controller {
             notifier.interrupt();
             notifier.join();
         } catch (InterruptedException ex) {
-            log.info("Notifications manager was interrupted, when poked", ex);
+            log.info("Notifications manager thread was interrupted.", ex);
         }
         if (state) {
             notifier = new NotificationsManager();
