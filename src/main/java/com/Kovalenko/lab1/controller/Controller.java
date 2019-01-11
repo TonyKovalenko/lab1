@@ -24,11 +24,11 @@ public enum Controller {
 
     private static final String DEFAULT_STORAGE_FILE_NAME = "myTasks.txt";
     private static Logger log = Logger.getLogger(Controller.class.getName());
+    String inputChoice;
     private volatile ArrayTaskList taskList;
     private volatile Boolean listMutated;
     private NotificationsManager notifier;
     private String[] menuItems;
-    String inputChoice;
 
     Controller() {
         listMutated = false;
@@ -61,7 +61,7 @@ public enum Controller {
 
     /**
      * Utility method for printing menu, using {@code menuFormat}.
-     *
+     * <p>
      * In following methods, user can select menu items
      * by typing it's corresponding number to console, e.g. 1, 2, 3, etc.
      *
@@ -157,8 +157,7 @@ public enum Controller {
      * - Method for adding tasks to {@code taskList}
      * by loading collection of Tasks from file
      *
-     * @param path
-     *        path to file to load tasks from
+     * @param path path to file to load tasks from
      * @see TaskIO
      */
     private void loadFromFile(String path) {
@@ -361,13 +360,10 @@ public enum Controller {
         String s[] = trimmedInput.split(" ");
         Integer indexesToRemoveTasksFrom[] = new Integer[s.length];
 
-        try {
-            for (int i = 0; i < s.length; i++) {
-                indexesToRemoveTasksFrom[i] = Integer.parseInt(s[i]);
-            }
-        } catch (NumberFormatException ex) {
-            throw ex;
+        for (int i = 0; i < s.length; i++) {
+            indexesToRemoveTasksFrom[i] = Integer.parseInt(s[i]);
         }
+
 
         return indexesToRemoveTasksFrom;
     }

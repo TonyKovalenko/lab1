@@ -33,31 +33,26 @@ public final class TaskIO {
      *
      * @param tasks collection of Task, we want to serialize into OutputStream
      * @param out   OutputStream, to serialize the collection in
+     * @throws IOException when there was exception during writing to the OutputStream
      * @see Task
      */
     public static void write(TaskList tasks, OutputStream out) throws IOException {
         Iterator<Task> iter = tasks.iterator();
         Task currentTask;
         DataOutputStream dos = new DataOutputStream(out);
-        try {
-            dos.writeInt(tasks.size()); //number of tasks
-            while (iter.hasNext()) {
-                currentTask = iter.next();
-
-                dos.writeInt(currentTask.getTitle().length()); // title length
-                dos.writeChars(currentTask.getTitle());        // title in byte array
-                dos.writeInt(currentTask.isActive() ? 1 : 0);  // 0 or 1 if active or not
-                dos.writeInt(currentTask.getRepeatInterval()); // write repeat interval
-                if (currentTask.isRepeated()) {
-                    dos.writeLong(currentTask.getStartTime().getTime()); // task is repeated, so put start time
-                    dos.writeLong(currentTask.getEndTime().getTime());   // and end time
-                } else {
-                    dos.writeLong(currentTask.getTime().getTime());      // task is non repeated, so put the time of notification
-                }
+        dos.writeInt(tasks.size()); //number of tasks
+        while (iter.hasNext()) {
+            currentTask = iter.next();
+            dos.writeInt(currentTask.getTitle().length()); // title length
+            dos.writeChars(currentTask.getTitle());        // title in byte array
+            dos.writeInt(currentTask.isActive() ? 1 : 0);  // 0 or 1 if active or not
+            dos.writeInt(currentTask.getRepeatInterval()); // write repeat interval
+            if (currentTask.isRepeated()) {
+                dos.writeLong(currentTask.getStartTime().getTime()); // task is repeated, so put start time
+                dos.writeLong(currentTask.getEndTime().getTime());   // and end time
+            } else {
+                dos.writeLong(currentTask.getTime().getTime());      // task is non repeated, so put the time of notification
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            throw new IOException("IOException happened, while writing to OutputStream from collection", ex);
         }
     }
 
@@ -70,6 +65,7 @@ public final class TaskIO {
      *
      * @param tasks collection of Task, we want to be filled from InputStream
      * @param in    InputStream, to fill the collection from
+     * @throws IOException when there was exception during reading from the InputStream
      * @see Task
      */
     public static void read(TaskList tasks, InputStream in) throws IOException {
@@ -81,35 +77,30 @@ public final class TaskIO {
         Date time, start, end;     // dates for future Task
         int repeat;
         char[] bufferForTitle;
-        try {
-            dis.readInt(); // read task count (ignored, as we use collections that can expand by themselves)
-            while (dis.available() > 0) {
-                titleLength = dis.readInt(); // title length
-                bufferForTitle = new char[titleLength]; // buffer for title
+        dis.readInt(); // read task count (ignored, as we use collections that can expand by themselves)
+        while (dis.available() > 0) {
+            titleLength = dis.readInt(); // title length
+            bufferForTitle = new char[titleLength]; // buffer for title
 
-                for (int i = 0; i < titleLength; i++) {
-                    bufferForTitle[i] = dis.readChar(); // read title as
-                }
-
-                title = new String(bufferForTitle); // convert char array to string
-                active = (dis.readInt() != 0); // if task is active - 1 else 0
-                repeat = dis.readInt();
-                if (repeat == 0) {
-                    time = new Date(dis.readLong());
-                    currentTask = new Task(title, time);
-                    currentTask.setActive(active);
-                    tasks.add(currentTask);
-                } else {
-                    start = new Date(dis.readLong());
-                    end = new Date(dis.readLong());
-                    currentTask = new Task(title, start, end, repeat);
-                    currentTask.setActive(active);
-                    tasks.add(currentTask);
-                }
+            for (int i = 0; i < titleLength; i++) {
+                bufferForTitle[i] = dis.readChar(); // read title as
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            throw new IOException("IOException happened, while reading from InputStream to collection");
+
+            title = new String(bufferForTitle); // convert char array to string
+            active = (dis.readInt() != 0); // if task is active - 1 else 0
+            repeat = dis.readInt();
+            if (repeat == 0) {
+                time = new Date(dis.readLong());
+                currentTask = new Task(title, time);
+                currentTask.setActive(active);
+                tasks.add(currentTask);
+            } else {
+                start = new Date(dis.readLong());
+                end = new Date(dis.readLong());
+                currentTask = new Task(title, start, end, repeat);
+                currentTask.setActive(active);
+                tasks.add(currentTask);
+            }
         }
     }
 
@@ -119,17 +110,12 @@ public final class TaskIO {
      *
      * @param tasks collection of Task, we want to be put into File
      * @param file  File, to put task collection in
+     * @throws IOException when there was exception during writing to the File
      * @see Task
      */
     public static void writeBinary(TaskList tasks, File file) throws IOException {
         try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file))) {
             write(tasks, out);
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-            throw new FileNotFoundException("Specified file was not found");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            throw new IOException("IOexception happened while writing into file");
         }
     }
 
@@ -139,17 +125,12 @@ public final class TaskIO {
      *
      * @param tasks collection of Task, we want to be filled from file
      * @param file  File, to fill the collection from
+     * @throws IOException when there was exception during reading from the OutputStream
      * @see Task
      */
     public static void readBinary(TaskList tasks, File file) throws IOException {
         try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
             read(tasks, in);
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-            throw new FileNotFoundException("Specified file was not found");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            throw new IOException("IOexception happened while writing into file");
         }
     }
 
@@ -161,6 +142,7 @@ public final class TaskIO {
      *
      * @param tasks     collection of tasks, we want to serialize into Writer
      * @param outWriter Writer, to serialize the collection in
+     * @throws IOException when there was exception during writing to the Writer
      * @see Task
      */
     public static void write(TaskList tasks, Writer outWriter) throws IOException {
@@ -219,6 +201,8 @@ public final class TaskIO {
      *
      * @param tasks collection of Task, we want to be filled from Reader
      * @param in    Reader, to fill the collection from
+     * @throws IOException    when there was exception during reading from the OutputStream
+     * @throws ParseException when there was exception during parsing the data
      * @see Task
      */
     public static void read(TaskList tasks, Reader in) throws IOException, ParseException, StringIndexOutOfBoundsException {
@@ -256,8 +240,6 @@ public final class TaskIO {
             if (tasks instanceof LinkedTaskList) {
                 ((LinkedTaskList) tasks).reverse();
             }
-        } catch (IOException | ParseException ex) {
-            throw ex;
         }
     }
 
@@ -267,13 +249,13 @@ public final class TaskIO {
      *
      * @param tasks collection of Task, we want to be filled from file
      * @param file  File, to fill the collection from
+     * @throws IOException    when there was exception during reading from the OutputStream
+     * @throws ParseException when there was exception during parsing the data
      * @see Task
      */
     public static void readText(TaskList tasks, File file) throws IOException, ParseException {
         try (Reader in = new BufferedReader(new FileReader(file))) {
             read(tasks, in);
-        } catch (IOException ex) {
-            throw ex;
         }
     }
 
