@@ -201,7 +201,7 @@ public enum Controller {
     private void showTaskListMainMenu() {
         System.out.println("\n---------- Main menu -----------");
         System.out.println("\n - Please choose what do you want to do next \n");
-        String[] menuItems = new String[]{
+        menuItems = new String[]{
             "View all your tasks.",
             "Add a new task to list.",
             "Remove tasks from list.",
@@ -260,15 +260,6 @@ public enum Controller {
         System.out.println("List of all tasks is displayed below.\n");
         String[] collectionItems = menuItemsOutOfCollection(taskList);
         menuUtil(collectionItems);
-    }
-
-    /**
-     * Util method, waits for ENTER press, then returns
-     */
-    private void waitForEnterButton() {
-        System.out.println("\nHit ENTER to go to previous menu.");
-        Scanner scan = new Scanner(System.in);
-        scan.nextLine();
     }
 
     /**
