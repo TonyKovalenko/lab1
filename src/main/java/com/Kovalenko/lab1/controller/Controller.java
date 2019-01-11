@@ -24,7 +24,7 @@ public enum Controller {
 
     private static final String DEFAULT_STORAGE_FILE_NAME = "myTasks.txt";
     private static Logger log = Logger.getLogger(Controller.class.getName());
-    String inputChoice;
+    private String inputChoice;
     private volatile ArrayTaskList taskList;
     private volatile Boolean listMutated;
     private NotificationsManager notifier;
@@ -266,6 +266,7 @@ public enum Controller {
      * Method to check if collection is empty(i.e. has no task inside)
      * {@link TaskList#size()}
      *
+     * @param str string, used for informational message
      * @see TaskList
      */
     private void checkIfEmptyCollectionThenStepOut(String str) {
@@ -315,8 +316,8 @@ public enum Controller {
         System.out.println("----------- Remove menu -----------");
         String[] collectionItemsAsMenu = menuItemsOutOfCollection(taskList);
         System.out.println("\n - Choose the number of a task you want to remove from list");
-        System.out.println("(Note, you can remove several tasks by typing their numbers separated by spaces\n" +
-                               "e.g. 1 3 5 - will remove tasks by number 1, 3 and 5 )\n");
+        System.out.println("(Note, you can remove several tasks by typing their numbers separated by spaces\n"
+                               + "e.g. 1 3 5 - will remove tasks by number 1, 3 and 5 )\n");
         menuUtil(collectionItemsAsMenu);
     }
 
@@ -348,8 +349,8 @@ public enum Controller {
      */
     private Integer[] parseNeededRemoveIndexes(String input) throws NumberFormatException {
         String trimmedInput = input.trim().replaceAll(" +", " ");
-        String s[] = trimmedInput.split(" ");
-        Integer indexesToRemoveTasksFrom[] = new Integer[s.length];
+        String[] s = trimmedInput.split(" ");
+        Integer[] indexesToRemoveTasksFrom = new Integer[s.length];
 
         for (int i = 0; i < s.length; i++) {
             indexesToRemoveTasksFrom[i] = Integer.parseInt(s[i]);
@@ -363,6 +364,7 @@ public enum Controller {
      * Method to validate parsed indexes formed by {@link #parseNeededRemoveIndexes(String)}
      *
      * @param removalIndexes int[] of tasks indexes, that will be used in removal process from collection
+     * @return unique removal indexes
      * @throws IndexOutOfBoundsException if validation was failed, so there is no tasks by given indexes in collection.
      *                                   Keep in mind, that tasks in the menu are shown from index 1 to i,
      *                                   but we validate indexes shifting them 1 position to the left due to tasks
@@ -491,8 +493,9 @@ public enum Controller {
                 correctInput = false;
                 boolean routed = routeIfControlWord(inputChoice, Menus.GET_DATE, stepOutTo, message, indexIfEditing);
                 //depending on the menu, predefined statements can route to different menus, so we use above method
-                if (!routed)
+                if (!routed) {
                     System.out.print("! You've entered " + message + " in invalid format, please retry.");
+                }
             }
             if (correctInput) {
                 return actualDate;
@@ -508,6 +511,7 @@ public enum Controller {
      * @param stepOutTo      the menu, we can step out to from current menu, using {@link #routeIfControlWord(String, Menus, Menus, String, int...)}
      * @param message        String value, that can be used in the menu messages, we are using the method in
      * @param indexIfEditing in case we use this method in edit menu, we need to provide index of task to edit, when we step out
+     * @return title for the task
      */
     private String getTitleOrStepOutTo(Menus stepOutTo, String message, int... indexIfEditing) {
         System.out.print("\nPlease enter title for your " + message + " task\n");
@@ -674,8 +678,9 @@ public enum Controller {
                     continue;
                 }
             }
-            if (!routed)
+            if (!routed) {
                 editTaskByIndex(indexToEditTask - 1);
+            }
             routed = false;
         } while (true);
     }
