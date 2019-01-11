@@ -28,6 +28,7 @@ public enum Controller {
     private volatile Boolean listMutated;
     private NotificationsManager notifier;
     private String[] menuItems;
+    String inputChoice;
 
     Controller() {
         listMutated = false;
@@ -120,7 +121,6 @@ public enum Controller {
      */
     private void chooseTaskList() {
         showChooseTaskListMenu();
-        String inputChoice;
         do {
             inputChoice = getTrimmedInput();
             switch (inputChoice) {
@@ -219,7 +219,6 @@ public enum Controller {
      */
     private void taskListMain() {
         showTaskListMainMenu();
-        String inputChoice;
         do {
             inputChoice = getTrimmedInput();
             switch (inputChoice) {
@@ -293,7 +292,6 @@ public enum Controller {
         checkIfEmptyCollectionThenStepOut("Nothing to remove.");
         Integer[] indexesToRemoveTasksFrom = null;
         showRemoveTasksMenu();
-        String inputChoice;
         do {
             inputChoice = getTrimmedInput();
             try {
@@ -411,11 +409,9 @@ public enum Controller {
         System.out.println("Are you sure you want to remove tasks " + Arrays.toString(indexes)
                                + "? (This action can't be undone.)\n "
                                + " - To confirm - type 'y', to cancel - type 'n' ");
-        String inputChoice;
         do {
             inputChoice = getTrimmedInput();
-            String trimmedInput = inputChoice;
-            switch (trimmedInput) {
+            switch (inputChoice) {
                 case "y":
                     synchronized (this) {
                         removeByIndexesConfirmed(indexes);
@@ -483,7 +479,6 @@ public enum Controller {
      */
     private Date getDateOrStepOutTo(Menus stepOutTo, String message, int... indexIfEditing) {
         System.out.print("\nPlease enter " + message + " in following format 'YYYY-mm-DD HH:mm:ss', you may not enter seconds \n");
-        String inputChoice;
         Date actualDate = new Date();
         boolean correctInput;
         do {
@@ -529,7 +524,6 @@ public enum Controller {
      */
     private String getTitleOrStepOutTo(Menus stepOutTo, String message, int... indexIfEditing) {
         System.out.print("\nPlease enter title for your " + message + " task\n");
-        String inputChoice;
         do {
             inputChoice = getTrimmedInput();
             switch (inputChoice) {
@@ -626,7 +620,6 @@ public enum Controller {
      */
     private boolean getStateOrStepOutTo(String str) {
         System.out.print("\nPlease enter 'y' if your task is " + str + ", enter 'n' otherwise\n");
-        String inputChoice;
         do {
             inputChoice = getTrimmedInput();
             switch (inputChoice) {
@@ -654,7 +647,6 @@ public enum Controller {
      */
     private int getRepeatIntervalOrStepOutTo(Menus stepOutTo, String message, int... indexIfEditing) {
         System.out.print("\nPlease enter " + message + " repeat interval for your task in MINUTES\n");
-        String inputChoice;
         int interval;
         do {
             inputChoice = getTrimmedInput();
@@ -681,7 +673,6 @@ public enum Controller {
     private void editTaskList() {
         checkIfEmptyCollectionThenStepOut("Nothing to edit.");
         editTaskMenu();
-        String inputChoice;
         boolean routed = false;
         int indexToEditTask = -1;
         do {
@@ -769,7 +760,6 @@ public enum Controller {
      */
     private void editRepeatedTask(Task editedTask, int index) {
         editOptionsForRepeatedTask(editedTask);
-        String inputChoice;
         do {
             inputChoice = getTrimmedInput();
             switch (inputChoice) {
@@ -868,7 +858,6 @@ public enum Controller {
      */
     private void editNonRepeatedTask(Task editedTask, int index) {
         editOptionsForNonRepeatedTask(editedTask);
-        String inputChoice;
         do {
             inputChoice = getTrimmedInput();
             switch (inputChoice) {
