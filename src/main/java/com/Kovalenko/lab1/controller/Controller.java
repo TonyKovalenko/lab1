@@ -55,17 +55,7 @@ public enum Controller {
      */
     public void run() {
         log.info("App started.");
-        welcomeMessage();
         chooseTaskList();
-    }
-
-    /**
-     * Method for printing welcome message to the user
-     */
-    private void welcomeMessage() {
-        System.out.println("-------------------------------\n" +
-                               "*** Welcome to Task Manager ***\n" +
-                               "-------------------------------");
     }
 
     /**
