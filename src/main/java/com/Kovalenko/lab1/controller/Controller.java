@@ -51,9 +51,7 @@ public enum Controller {
 
     /**
      * Main method to start an application,
-     * it welcomes the user by calling {@link #welcomeMessage()} method
-     * and continues execution by passing the control
-     * to {@link #chooseTaskList()} method
+     * {@link #chooseTaskList()}
      */
     public void run() {
         log.info("App started.");
@@ -72,10 +70,7 @@ public enum Controller {
 
     /**
      * Utility method for printing menu, using {@code menuFormat}.
-     * Example of printed menu:
-     * #1   menuItem1
-     * #2   menuItem2
-     * ...  ...
+     *
      * In following methods, user can select menu items
      * by typing it's corresponding number to console, e.g. 1, 2, 3, etc.
      *
@@ -99,7 +94,6 @@ public enum Controller {
         System.out.print("\n>>> Your input: ");
         String input = "";
         BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
-        ;
         do {
             try {
                 input = buff.readLine();
@@ -131,18 +125,6 @@ public enum Controller {
 
     /**
      * Method for actual choosing from where he wants all the tasks to be loaded from
-     * Available typing options: '1' - Creating new empty TaskList
-     * <p>
-     * '2' - Load from own file, by specifying path to it,
-     * by using  {@link #loadFromFile(String)} method
-     * <p>
-     * '3' - Load from last saved default storage file,
-     * by using {@link #loadFromFile(String)} method
-     * <p>
-     * 'exit', 'quit' - will exit the application (this is predefined statement)
-     * <p>
-     * 'menu' - will display current menu and will wait for user input (this is predefined statement)
-     * <p>
      * Predefined statements will be resolved in {@link #routeIfControlWord(String, Menus, Menus, String, int...)}
      * In case of wrong input, user will be asked to retry.
      */
@@ -183,28 +165,10 @@ public enum Controller {
 
     /**
      * - Method for adding tasks to {@code taskList}
-     * by loading collection of Tasks from
-     * default storage text file with {@code defaultFileName} name
-     * <p>
-     * - In case of last saved storage file is missing,
-     * FileNotFoundException will be thrown by {@link com.Kovalenko.lab1.model.TaskIO#readText(TaskList, File)} method
-     * So instead new empty default storage file will be created,
-     * and {@code taskList} will be empty too.
-     * <p>
-     * - In case of last saved storage file is corrupted,
-     * i.e. format of any Task inside the file is not one of such templates:
-     * <p>
-     * "Task title" at [2014-06-28 18:00:13.000];
-     * "Very ""Good"" title" at [2013-05-10 20:31:20.001] inactive; (quotes in titles are doubled)
-     * "Other task" from [2010-06-01 08:00:00.000] to [2010-09-01 00:00:00.000] every [1 day].
-     * "not active repeated" from [1970-01-02 05:46:40.000] to [1970-01-02 11:20:00.000] every [7 minutes 30 seconds] inactive;
-     * <p>
-     * then ParseException will be thrown by {@link com.Kovalenko.lab1.model.TaskIO#readText(TaskList, File)} method
-     * So instead new empty default file will be created, and {@code taskList} will be empty too.
-     * <p>
-     * - In case of any IOException while reading from default storage file,
-     * there will be empty {@code taskList} created
+     * by loading collection of Tasks from file
      *
+     * @param path
+     *        path to file to load tasks from
      * @see TaskIO
      */
     private void loadFromFile(String path) {
@@ -240,7 +204,6 @@ public enum Controller {
         }
     }
 
-
     /**
      * Main menu, printed using {@link #menuUtil(String...)}
      * <p>
@@ -261,23 +224,6 @@ public enum Controller {
 
     /**
      * Method for actual choosing what user wants to do with the loaded collection
-     * Available typing options: '1' - Viewing all tasks in the list
-     * <p>
-     * '2' - Adding new task to the list
-     * <p>
-     * '3' - Remove task from list
-     * <p>
-     * '4' - Edit task in list
-     * <p>
-     * '5' - View calendar
-     * <p>
-     * '3' - Edit notifications
-     * <p>
-     * 'back', 'prev' - will return to previous menu (this is predefined statement)
-     * <p>
-     * 'exit', 'quit' - will exit the application (this is predefined statement)
-     * <p>
-     * 'menu' - will display current menu and will wait for user input (this is predefined statement)
      * Predefined statements are resolved in {@link #routeIfControlWord(String, Menus, Menus, String, int...)}
      * In case of wrong input, user will be asked to retry.
      */
@@ -319,12 +265,6 @@ public enum Controller {
 
     /**
      * Method for viewing current list of tasks
-     * <p>
-     * If it is empty, there will be a message about it,
-     * if not, list of tasks will be displayed on the screen by using {@link #menuUtil(String...)}.
-     * <p>
-     * After viewing user should press ENTER button,
-     * this will redirect him to previous menu by calling {@link #showChooseTaskListMenu()}
      */
     private void viewTasks() {
         checkIfEmptyCollectionThenStepOut("Nothing to view.");
@@ -346,7 +286,6 @@ public enum Controller {
     /**
      * Method to check if collection is empty(i.e. has no task inside)
      * {@link TaskList#size()}
-     * If so, user will be returned to main menu after pressing ENTER key.
      *
      * @see TaskList
      */
@@ -358,13 +297,7 @@ public enum Controller {
     }
 
     /**
-     * Method to show remove menu to user,
-     * it will display all tasks description, if list of tasks is not empty,
-     * otherwise user will be notified about it and proposed to hit ENTER key,
-     * which will return him to previous menu {@link #showChooseTaskListMenu()}.
-     * <p>
-     * There is an option to delete several tasks at once if user enters task's
-     * menu indexes, separated by spaces. But still, this input will be validated.
+     * Method to show remove menu to user, and get indexes to further remove tasks.
      */
     private void removeTasks() {
         checkIfEmptyCollectionThenStepOut("Nothing to remove.");
@@ -399,16 +332,6 @@ public enum Controller {
 
     /**
      * Menu, that will be displayed, when user chooses to delete tasks from collection
-     * <p>
-     * Tasks from collection will be displayed in following format:
-     * <p>
-     * #1   Task description
-     * #2   Task description
-     * ...  ...
-     * <p>
-     * Such output is formed in {@link #menuItemsOutOfCollection(TaskList)} method.
-     * <p>
-     * Remove logic relies on the fact that actual index of task in collection is (#ofSelectedTask - 1),
      */
     private void showRemoveTasksMenu() {
         System.out.println("----------- Remove menu -----------");
@@ -491,12 +414,6 @@ public enum Controller {
 
     /**
      * Method to confirm or cancel removal from collection.
-     * User should enter 'y' - to confirm deletion, so {@link #removeByIndexesConfirmed(Integer[])} will be called
-     * <p>
-     * 'n',
-     * 'back',
-     * 'prev' - to cancel deletion, then there will be a redirect
-     * back to remove menu {@link #removeTasks()}
      *
      * @param indexes validated int[] of indexes that will be used to delete tasks from collection.
      */
@@ -542,17 +459,6 @@ public enum Controller {
 
     /**
      * Method to create calendar for dates that will be specified by a user
-     * <p>
-     * If a task list is empty, there will be a notification about it,
-     * then user will have to press ENTER to go to previous menu {@link #taskListMain()}
-     * <p>
-     * Next steps will be the input of {@code startDate} and {@code endDate}
-     * <p>
-     * This input will be validated by checking of {@code endDate} is after {@code startDate}
-     * If this validation fails, user will be proposed to retry his input of dates.
-     * <p>
-     * After input was validated, {@link #renderCalendar(Date, Date)} will be executed,
-     * to output calendar for selected dates
      */
     private void calendar() {
         Date startDate;
@@ -652,19 +558,6 @@ public enum Controller {
     /**
      * Method to render calendar to console.
      * Calendar is formed using {@link Tasks#calendar(Iterable, Date, Date)} method
-     * <p>
-     * For each date between {@code from} and {@code to}
-     * when there will be a tasks scheduled, following output will be produced
-     * <p>
-     * --- Date ---
-     * Task 1 ....
-     * Task 2 ....
-     * ------------
-     * <p>
-     * If there will be no tasks scheduled for specified period
-     * there will be notification message about it.
-     * <p>
-     * After output was produced, user will be redirected to previous menu after pressing ENTER key.
      *
      * @param from date to search for scheduled tasks from
      * @param to   date to search for scheduled tasks to
@@ -691,11 +584,6 @@ public enum Controller {
 
     /**
      * Method to add tasks to collection.
-     * <p>
-     * Title is validated not to consist of spaces or newline character only.
-     * Start date is validated to be BEFORE end date.
-     * User should input all necessary fields before the task could be created.
-     * Value for {@code taskIsActive} and {@code taskIsRepeated} is returned by {@link #getStateOrStepOutTo(String)}
      *
      * @see Task
      */
@@ -826,16 +714,6 @@ public enum Controller {
 
     /**
      * Menu, that will be displayed, when user wants to edit tasks in collection
-     * <p>
-     * Tasks from collection will be displayed in following format:
-     * <p>
-     * #1   Task description
-     * #2   Task description
-     * ...  ...
-     * <p>
-     * Such output is formed in {@link #menuItemsOutOfCollection(TaskList)} method.
-     * <p>
-     * Edit logic relies on the fact that actual index of task in collection is (#i - 1),
      */
     private void editTaskMenu() {
         System.out.println("----------- Edit menu -----------");
@@ -967,10 +845,6 @@ public enum Controller {
 
     /**
      * Method to edit start and end time while editing repeated task.
-     * Entered dates are validated for start date to be BEFORE end date.
-     * In case of wrong input user will have to retry input of both dates.
-     * <p>
-     * User can step out to previous menu {@link #editTaskByIndex(int)}
      *
      * @param editedTask the actual task that will be edited
      * @param index      index of the task that will be edited,
@@ -997,10 +871,6 @@ public enum Controller {
 
     /**
      * Method to edit non-repeated task.
-     * Options for editing repeated task are provided by {@link #editOptionsForNonRepeatedTask(Task)}
-     * <p>
-     * After task was edited, user is returned again on the menu with options to edit same task,
-     * as there are several edit options to choose from.
      *
      * @param editedTask the actual task that will be edited
      * @param index      index of the task that will be edited,
@@ -1051,7 +921,6 @@ public enum Controller {
 
     /**
      * Edit options when the edited task is non-repeated.
-     * Option to make task active/inactive is computed using current task state.
      *
      * @param editedTask actual task that will be edited,
      *                   used to compute menu item about it's current active/inactive state
@@ -1188,12 +1057,6 @@ public enum Controller {
 
     /**
      * Method to start new thread for notifications.
-     * <p>
-     * If method is called with false argument,
-     * and there is running notification thread {@code notifier},
-     * that thread will be interrupted.
-     * <p>
-     * Calling method with true argument will relaunch notification thread.
      *
      * @param state true, if notifications should be enabled
      *              false, if they should be disabled
