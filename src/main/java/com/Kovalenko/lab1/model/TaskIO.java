@@ -199,8 +199,9 @@ public class TaskIO {
      *
      * @param tasks collection of Task, we want to be filled from Reader
      * @param in    Reader, to fill the collection from
-     * @throws IOException    when there was exception during reading from the OutputStream
-     * @throws ParseException when there was exception during parsing the data
+     * @throws IOException                     when there was exception during reading from the OutputStream
+     * @throws ParseException                  when there was exception during parsing the data
+     * @throws StringIndexOutOfBoundsException when there was exception during parsing the data
      * @see Task
      */
     public static void read(TaskList tasks, Reader in) throws IOException, ParseException, StringIndexOutOfBoundsException {
