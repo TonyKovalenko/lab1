@@ -207,6 +207,7 @@ public enum Controller {
             "Remove tasks from list.",
             "Edit task in list.",
             "View calendar.",
+            "Info.",
         };
         menuUtil(menuItems);
     }
@@ -241,6 +242,10 @@ public enum Controller {
                 case "5":
                     //View calendar
                     calendar();
+                    break;
+                case "6":
+                    //Info
+                    info();
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.TASKLIST_MAIN, Menus.VOID, "");
@@ -1064,6 +1069,25 @@ public enum Controller {
         log.info("Exiting the app.");
         System.out.println("Exiting...");
         System.exit(0);
+    }
+
+    /**
+     * Info menu, description of some features of app.
+     */
+    private void info() {
+        System.out.printf("%n%s%n" +
+                              "%-15s" + "%-15s%n" +
+                              "%-15s" + "%-55s%n" +
+                              "%-15s" + "%-55s%n" +
+                              "%-15s" + "%-55s%n" +
+                              "%s",
+            "--- You can use several keywords during your work ---",
+            "Keyword", "Action",
+            "quit/exit", "Exiting the application, saving your current work.",
+            "back/prev", "Returning to the previous menu.",
+            "menu",      "Printing current menu one more time.",
+            "-----------------------------------------------------\n");
+        taskListMain();
     }
 
     /**
