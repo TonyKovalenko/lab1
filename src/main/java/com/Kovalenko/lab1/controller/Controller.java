@@ -551,6 +551,7 @@ public enum Controller {
         if (calendar.size() == 0) {
             System.out.println("No tasks for selected period.\n");
         } else {
+            removeDuplicatedRepeatedTasks(calendar);
             calendar.forEach((K, V) -> {
                 System.out.println(" --- " + K + " --- ");
                 for (Task task : V) {
@@ -561,6 +562,42 @@ public enum Controller {
         }
         taskListMain();
     }
+
+    /**
+     * Method to remove repeated task from calendar,
+     * if they appear several times for the period.
+     *
+     * @param calendar calendar to remove duplicated repeated task for the
+     */
+    private void removeDuplicatedRepeatedTasks(SortedMap<Date, Set<Task>> calendar) {
+        Iterator<Map.Entry<Date, Set<Task>>> iter = calendar.entrySet().iterator();
+        Map.Entry<Date, Set<Task>> entry = iter.next();
+        Set<Task> uniqueRepeatedTasks = new HashSet<>(entry.getValue());
+        calendar.put(entry.getKey(), new HashSet<>(uniqueRepeatedTasks));
+
+        Set<Task> currentSet;
+        Task currentTask;
+        for (entry = iter.next(); iter.hasNext(); entry = iter.next()) {
+            currentSet = entry.getValue();
+            for (Iterator<Task> taskIterator = currentSet.iterator(); taskIterator.hasNext();) {
+                currentTask = taskIterator.next();
+                if (currentTask.isRepeated()) {
+                    boolean foundDuplicate = false;
+                    for (Task unique : uniqueRepeatedTasks) {
+                        if (currentTask.equals(unique)) {
+                            taskIterator.remove();
+                            foundDuplicate = true;
+                        }
+                    }
+                    if (!foundDuplicate) {
+                        uniqueRepeatedTasks.add(currentTask);
+                    }
+                }
+            }
+        }
+        calendar.entrySet().removeIf(e -> e.getValue().size() == 0);
+    }
+
 
     /**
      * Method to add tasks to collection.
@@ -1085,7 +1122,7 @@ public enum Controller {
             "Keyword", "Action",
             "quit/exit", "Exiting the application, saving your current work.",
             "back/prev", "Returning to the previous menu.",
-            "menu",      "Printing current menu one more time.",
+            "menu", "Printing current menu one more time.",
             "-----------------------------------------------------\n");
         taskListMain();
     }

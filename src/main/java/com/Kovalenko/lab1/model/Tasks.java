@@ -67,7 +67,7 @@ public class Tasks {
                         break;
                     }
                     if (calendarToReturn.get(timeToAdd) != null) {
-                        Set<Task> newSet = calendarToReturn.get(timeToAdd);
+                        Set<Task> newSet = new HashSet<>(calendarToReturn.get(timeToAdd));
                         newSet.add(currentTask);
                         calendarToReturn.put(timeToAdd, newSet);
                     } else {
