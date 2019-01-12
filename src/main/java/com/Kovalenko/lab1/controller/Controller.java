@@ -179,7 +179,7 @@ public enum Controller {
                 System.out.println("! Seems like file is missing, "
                                        + "so new empty default file was created and list of tasks is now empty");
             }
-        } catch (IOException | ParseException | StringIndexOutOfBoundsException ex) {
+        } catch (IOException | ParseException | StringIndexOutOfBoundsException | IllegalArgumentException ex) {
             taskList = new ArrayTaskList();
             try {
                 File defaultStorage = new File(DEFAULT_STORAGE_FILE_NAME);
@@ -579,7 +579,7 @@ public enum Controller {
         Task currentTask;
         for (entry = iter.next(); iter.hasNext(); entry = iter.next()) {
             currentSet = entry.getValue();
-            for (Iterator<Task> taskIterator = currentSet.iterator(); taskIterator.hasNext();) {
+            for (Iterator<Task> taskIterator = currentSet.iterator(); taskIterator.hasNext(); ) {
                 currentTask = taskIterator.next();
                 if (currentTask.isRepeated()) {
                     boolean foundDuplicate = false;
@@ -597,7 +597,6 @@ public enum Controller {
         }
         calendar.entrySet().removeIf(e -> e.getValue().size() == 0);
     }
-
 
     /**
      * Method to add tasks to collection.
@@ -687,6 +686,9 @@ public enum Controller {
             if (!routed) {
                 try {
                     interval = Integer.parseInt(inputChoice);
+                    if (interval < 0) {
+                        throw new NumberFormatException("Interval cannot be less than zero.");
+                    }
                 } catch (NumberFormatException ex) {
                     log.info("Invalid repeat interval format in user's input. ", ex);
                     System.out.println("You've entered repeat interval in wrong format, please retry.");
@@ -828,6 +830,15 @@ public enum Controller {
                     }
                     log.info("Task state was edited successfully.");
                     break;
+                case "5": //Make task non repeatable
+                    Date newNonRepeatableDate = getDateOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new date", index);
+                    synchronized (this) {
+                        editedTask.setTime(newNonRepeatableDate, editedTask.isActive());
+                        setListMutated(true);
+                    }
+                    log.info("Repeated task was switched to non repeatable.");
+                    System.out.println("Repeat interval was edited successfully!");
+                    break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_REPEATED_TASK, Menus.VOID, "", index);
                     if (!routed) {
@@ -852,6 +863,7 @@ public enum Controller {
             "Edit times for the task.",
             "Edit repeat interval for the task.",
             editedTask.isActive() ? "Make your task inactive." : "Make your task active.",
+            "Make you task non repeatable.",
         };
 
         menuUtil(menuItems);
@@ -921,6 +933,16 @@ public enum Controller {
                     }
                     log.info("Task state was edited successfully.");
                     break;
+                case "4": //Make task repeatable
+                    synchronized (this) {
+                        editedTask.setRepeated(true);
+                        int newRepeatInterval = getRepeatIntervalOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
+                        editedTask.setRepeatInterval(newRepeatInterval);
+                        editStartAndEndTimes(editedTask, index);
+                        setListMutated(true);
+                    }
+                    log.info("Non repeatable state was changed to repeatable.");
+                    break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_NON_REPEATED_TASK, Menus.VOID, "", index);
                     if (!routed) {
@@ -944,6 +966,7 @@ public enum Controller {
             "Edit the title.",
             "Edit scheduled time for the task.",
             editedTask.isActive() ? "Make your task inactive." : "Make your task active.",
+            "Make your task repeatable."
         };
 
         menuUtil(menuItems);

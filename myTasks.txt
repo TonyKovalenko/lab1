@@ -1,6 +1,6 @@
 "test_calendar" from [2019-01-01 00:00:00.000] to [2019-01-10 00:00:00.000] every [1 day];
-"nonrep" at [2019-01-13 00:00:00.000];
+"nonrep" from [2019-01-01 00:00:00.000] to [2020-01-01 00:00:00.000] every [1 minute];
 "test_calendar2" from [2019-01-08 00:00:00.000] to [2019-01-22 00:00:00.000] every [1 day];
 "test_calendar3" from [2019-01-19 00:00:00.000] to [2019-01-29 00:00:00.000] every [1 day];
 "test_calendar5" from [2019-01-13 00:00:00.000] to [2019-01-15 00:00:00.000] every [1 day];
-"test_calendar4" from [2019-01-21 00:00:00.000] to [2019-02-31 00:00:00.000] every [1 day].
+"test_calendar4" from [2019-01-21 00:00:00.000] to [2019-03-03 00:00:00.000] every [1 day].

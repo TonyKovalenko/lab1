@@ -102,13 +102,20 @@ public class Task implements Cloneable, Serializable {
     }
 
     /**
-     * Sets the Task active
+     * Sets the Task active state
      *
      * @param active state for the Task, true for making it active, false for making it inactive
      */
     public void setActive(boolean active) {
         this.active = active;
     }
+
+    /**
+     * Sets the Task repeated state
+     *
+     * @param repeated state for the Task, true for making it repeated, false for making it non repeated
+     */
+    public void setRepeated(boolean repeated) { this.repeated = repeated; }
 
     /**
      * Sets the time of notification for Task, Task becomes inactive
@@ -160,6 +167,26 @@ public class Task implements Cloneable, Serializable {
     }
 
     /**
+     * Sets the time of notification for Task, Task becomes inactive
+     * If called for repeatable Task makes it non repeatable
+     *
+     * @param time  time for Task notification
+     * @param state true, if task should be active, false otherwise
+     */
+    public void setTime(Date time, boolean state) throws IllegalArgumentException {
+        if (time.getTime() >= 0) {
+            this.time = time;
+            this.start = time;
+            this.end = time;
+            this.repeatInterval = 0;
+            this.repeated = false;
+            this.active = state;
+        } else {
+            throw new IllegalArgumentException("Invalid argument, time should be more or equal than zero");
+        }
+    }
+
+    /**
      * Gets the start time for Task notification
      *
      * @return start notification time for repeatable, notification time for non repeatable
@@ -199,6 +226,7 @@ public class Task implements Cloneable, Serializable {
             this.repeatInterval = repeatInterval;
         }
     }
+
 
     /**
      * Gets the repeatInterval interval in milliseconds for Task notification
@@ -259,15 +287,15 @@ public class Task implements Cloneable, Serializable {
     @Override
     public String toString() {
         if (!this.active) {
-            if(!this.isRepeated()) {
+            if (!this.isRepeated()) {
                 return "Task \"" + this.title + "\" at " + this.time + " is inactive";
             } else {
-                return "Task \"" + this.title + "\" from " + this.start + " to " + this.end + " every " + this.repeatInterval + " seconds is inactive";
+                return "Task \"" + this.title + "\" from " + this.start + " to " + this.end + " every " + this.repeatInterval / 60 + " minutes is inactive";
             }
         } else if (!repeated) {
             return "Task \"" + this.title + "\" at " + this.time + " is active";
         } else {
-            return "Task \"" + this.title + "\" from " + this.start + " to " + this.end + " every " + this.repeatInterval + " seconds is active";
+            return "Task \"" + this.title + "\" from " + this.start + " to " + this.end + " every " + this.repeatInterval / 60 + " minutes is active";
         }
     }
 
