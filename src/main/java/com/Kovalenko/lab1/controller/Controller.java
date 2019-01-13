@@ -837,7 +837,7 @@ public enum Controller {
                         setListMutated(true);
                     }
                     log.info("Repeated task was switched to non repeatable.");
-                    System.out.println("Repeat interval was edited successfully!");
+                    System.out.println("Task was edited successfully!");
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_REPEATED_TASK, Menus.VOID, "", index);
@@ -888,6 +888,7 @@ public enum Controller {
         } while (newTaskStart.after(newTaskEnd));
         synchronized (this) {
             boolean isActive = editedTask.isActive();
+            editedTask.setRepeated(true);
             editedTask.setTime(newTaskStart, newTaskEnd, editedTask.getRepeatInterval());
             editedTask.setActive(isActive);
             setListMutated(true);
@@ -935,13 +936,12 @@ public enum Controller {
                     break;
                 case "4": //Make task repeatable
                     synchronized (this) {
-                        editedTask.setRepeated(true);
                         int newRepeatInterval = getRepeatIntervalOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
                         editedTask.setRepeatInterval(newRepeatInterval);
                         editStartAndEndTimes(editedTask, index);
                         setListMutated(true);
                     }
-                    log.info("Non repeatable state was changed to repeatable.");
+                    log.info("Non repeatable task was changed to repeatable.");
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_NON_REPEATED_TASK, Menus.VOID, "", index);

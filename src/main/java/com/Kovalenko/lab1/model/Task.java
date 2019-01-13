@@ -222,9 +222,7 @@ public class Task implements Cloneable, Serializable {
      * does nothing fro non-repeated Task
      */
     public void setRepeatInterval(int repeatInterval) {
-        if (this.isRepeated()) {
             this.repeatInterval = repeatInterval;
-        }
     }
 
 
