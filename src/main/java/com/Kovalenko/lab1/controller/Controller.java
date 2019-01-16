@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 public enum Controller {
     INSTANCE;
 
-    private static final String DEFAULT_STORAGE_FILE_NAME = "myTasks.txt";
+    private static final String DEFAULT_STORAGE_FILE_NAME = "out/myTasks.txt";
     private static Logger log = Logger.getLogger(Controller.class.getName());
     private String inputChoice;
     private volatile ArrayTaskList taskList;

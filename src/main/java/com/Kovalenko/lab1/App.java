@@ -1,8 +1,6 @@
 package com.Kovalenko.lab1;
 
-
 import com.Kovalenko.lab1.controller.Controller;
-
 
 public class App {
 
@@ -11,8 +9,9 @@ public class App {
         myController.run();
     }
 
-    public static void main(String[] args) {
-        App.start();
+
+    public static void main(String... args) {
+         App.start();
     }
 
 }
