@@ -49,11 +49,13 @@ public enum Controller {
     private NotificationsManager notifier;
     private String[] menuItems;
     private String[] collectionItemsAsMenu;
+    private BufferedReader bufferedReader;
 
     Controller() {
         listMutated = false;
         notifier = new NotificationsManager();
         taskList = new ArrayTaskList();
+        bufferedReader = new BufferedReader(new InputStreamReader(System.in));
     }
 
     public TaskList getTaskList() {
@@ -108,17 +110,12 @@ public enum Controller {
     private String getTrimmedInput() {
         System.out.print("\n>>> Your input: ");
         String input = "";
-        BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
-        do {
-            try {
-                input = buff.readLine();
-            } catch (IOException e) {
-                log.error("NULL returned from user's input stream. ", e);
-                System.out.print("! Cannot read input because of internal error, please retry the input.");
-            }
-        } while (input == null);
-        buff = null;
-        return input.trim();
+        try {
+            input = bufferedReader.readLine();
+        } catch (IOException e) {
+            log.fatal("Error happened while reading from System.in" + e);
+        }
+        return input.trim().toLowerCase();
     }
 
     /**
@@ -167,7 +164,7 @@ public enum Controller {
                     boolean routed = routeIfControlWord(inputChoice, Menus.CHOOSE_TASKLIST, Menus.VOID, "");
                     //above method will resolve predefined words and will route the flow of the program
                     if (!routed) {
-                        System.out.print("Incorrect input, please retry.");
+                        System.out.println("Incorrect input, please retry.");
                     }
                     continue;
             }
@@ -1142,8 +1139,9 @@ public enum Controller {
         try {
             File oldTasks = new File(DEFAULT_STORAGE_FILE_NAME);
             TaskIO.writeText(taskList, oldTasks);
+            bufferedReader.close();
         } catch (IOException ex) {
-            log.error("Exception happened while writing to default storage file while saving upon exiting the application. ", ex);
+            log.error("Exception happened upon exiting the application. ", ex);
         }
         log.info("List of tasks was saved before the exit.");
         System.out.println("Saving...");
