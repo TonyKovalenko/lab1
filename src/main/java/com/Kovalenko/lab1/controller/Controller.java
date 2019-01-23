@@ -266,7 +266,7 @@ public enum Controller {
             System.out.println("\nYour list of tasks is empty at the moment. Nothing to remove.");
             return;
         }
-        Integer[] indexesToRemoveTasksFrom = null;
+        Integer[] indexesToRemoveTasksFrom;
         showRemoveTasksMenu();
         do {
             inputChoice = getTrimmedInput();
@@ -274,23 +274,18 @@ public enum Controller {
                 indexesToRemoveTasksFrom = parseNeededRemoveIndexes(inputChoice); //parse user input to get desired remove indexes
                 Set<Integer> uniqueRemovalIndexes = checkForInvalidRemovalIndexes(indexesToRemoveTasksFrom); //validate just inputted indexes
                 indexesToRemoveTasksFrom = uniqueRemovalIndexes.toArray(new Integer[]{});
+                removeTasksByGivenIndexesConfirmation(indexesToRemoveTasksFrom);
             } catch (NumberFormatException ex) {
                 boolean routed = routeIfControlWord(inputChoice, Menus.REMOVE_TASKS, Menus.VOID, "");
                 if (!routed) {
                     System.out.print("Incorrect input, please retry.");
                     log.info("Invalid index in user's input while removing tasks", ex);
-                    continue;
                 }
             } catch (IndexOutOfBoundsException ex) {
                 System.out.print(ex.getMessage());
-                indexesToRemoveTasksFrom = null;
                 log.info("Index out of bounds in user's input while removing tasks. ", ex);
-                continue;
             }
 
-            if (indexesToRemoveTasksFrom != null) {
-                removeTasksByGivenIndexesConfirmation(indexesToRemoveTasksFrom);
-            }
         } while (true);
     }
 
