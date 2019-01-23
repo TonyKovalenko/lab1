@@ -185,19 +185,6 @@ public enum Controller {
         try {
             TaskIO.readText(taskList, readFromFile);
             System.out.println("File was loaded successfully! ");
-        } catch (FileNotFoundException ex) {
-            log.info("File was not found. ", ex);
-            try {
-                if (readFromFile.createNewFile()) {
-                    File defaultStorage = new File(DEFAULT_STORAGE_FILE_NAME);
-                    defaultStorage.createNewFile();
-                }
-            } catch (IOException ioe) {
-                log.fatal("Exception while creating new empty default storage file. ", ioe);
-            } finally {
-                System.out.println("! Seems like file is missing, "
-                                       + "so new empty default file was created and list of tasks is now empty");
-            }
         } catch (IOException | ParseException | StringIndexOutOfBoundsException | IllegalArgumentException ex) {
             taskList = new ArrayTaskList();
             try {
@@ -206,7 +193,7 @@ public enum Controller {
             } catch (IOException ioe) {
                 log.fatal("Exception while creating new empty default storage file. ", ioe);
             }
-            System.out.println("! Seems like the content of file is corrupted, "
+            System.out.println("! Seems like the content of file is corrupted or it is missing, "
                                    + "so new empty file was created and list of tasks is now empty");
             log.warn("Last saved file was corrupted outside the application. File was emptied and new list of tasks was created. ", ex);
         }
