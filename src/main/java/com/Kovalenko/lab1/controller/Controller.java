@@ -48,6 +48,7 @@ public enum Controller {
     private volatile Boolean listMutated;
     private NotificationsManager notifier;
     private String[] menuItems;
+    private String[] collectionItemsAsMenu;
 
     Controller() {
         listMutated = false;
@@ -78,6 +79,7 @@ public enum Controller {
         showChooseTaskListMenu();
         chooseTaskList();
         pokeNotificationsManager(true);
+        collectionItemsAsMenu = menuItemsOutOfCollection(taskList);
         taskListMain();
     }
 
@@ -285,12 +287,11 @@ public enum Controller {
             System.out.println("\nYour list of tasks is empty at the moment. Nothing to view.");
             return;
         }
+        collectionItemsAsMenu = menuItemsOutOfCollection(taskList);
         System.out.println("\n----------- View menu -----------\n");
         System.out.println("List of all tasks is displayed below.\n");
-        String[] collectionItems = menuItemsOutOfCollection(taskList);
-        menuUtil(collectionItems);
+        menuUtil(collectionItemsAsMenu);
     }
-
 
     /**
      * Method to show remove menu to user, and get indexes to further remove tasks.
@@ -333,7 +334,7 @@ public enum Controller {
      */
     private void showRemoveTasksMenu() {
         System.out.println("----------- Remove menu -----------");
-        String[] collectionItemsAsMenu = menuItemsOutOfCollection(taskList);
+        collectionItemsAsMenu = menuItemsOutOfCollection(taskList);
         System.out.println("\n - Choose the number of a task you want to remove from list");
         System.out.println("(Note, you can remove several tasks by typing their numbers separated by spaces\n"
                                + "e.g. 1 3 5 - will remove tasks by number 1, 3 and 5 )\n");
@@ -349,9 +350,9 @@ public enum Controller {
      * @see TaskList
      */
     private String[] menuItemsOutOfCollection(TaskList tasks) {
-        String[] collectionItemsAsMenu = new String[taskList.size()];
+        String[] collectionItemsAsMenu = new String[tasks.size()];
         for (int i = 0; i < collectionItemsAsMenu.length; i++) {
-            collectionItemsAsMenu[i] = taskList.getTask(i).toString();
+            collectionItemsAsMenu[i] = tasks.getTask(i).toString();
         }
         return collectionItemsAsMenu;
 
