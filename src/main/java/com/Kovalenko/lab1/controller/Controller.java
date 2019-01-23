@@ -454,10 +454,8 @@ public enum Controller {
      */
     private Date getDateOrStepOutTo(Menus stepOutTo, String message, int... indexIfEditing) {
         System.out.print("\nPlease enter " + message + " in following format 'YYYY-mm-DD HH:mm:ss', you may not enter seconds \n");
-        Date actualDate = new Date();
-        boolean correctInput;
+        Date actualDate;
         do {
-            correctInput = true;
             inputChoice = getTrimmedInput();
             try {
                 String pattern = "^\\d{4}-\\d{2}-\\d{2}(\\s\\d{2}:\\d{2}(:\\d{2})?)?";
@@ -476,17 +474,15 @@ public enum Controller {
                 actualDate = sdf.parse(inputChoice);
             } catch (ParseException ex) {
                 //log.debug("Probable unexpected ParseException if pattern was matched. ", ex);
-                correctInput = false;
                 boolean routed = routeIfControlWord(inputChoice, Menus.GET_DATE, stepOutTo, message, indexIfEditing);
                 //depending on the menu, predefined statements can route to different menus, so we use above method
                 if (!routed) {
                     System.out.print("! You've entered " + message + " in invalid format, please retry.");
                     log.info("User entered " + message + " in invalid format", ex);
                 }
+                continue;
             }
-            if (correctInput) {
                 return actualDate;
-            }
         } while (true);
     }
 
