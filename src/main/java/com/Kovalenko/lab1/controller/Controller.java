@@ -22,25 +22,6 @@ import java.util.regex.Pattern;
 public enum Controller {
     INSTANCE;
 
-    /**
-     * Enum that represents different menus, available to user,
-     * used while routing between one another.
-     */
-    private enum Menus {
-        CHOOSE_TASKLIST,
-        TASKLIST_MAIN,
-        REMOVE_TASKS,
-        EDIT_TASK_LIST,
-        EDIT_TASK_BY_INDEX,
-        EDIT_NON_REPEATED_TASK,
-        EDIT_REPEATED_TASK,
-        GET_DATE,
-        GET_TITLE,
-        CHANGE_TASK_STATE,
-        GET_REPEAT_INTERVAL,
-        VOID
-    }
-
     private static final String DEFAULT_STORAGE_FILE_NAME = "out/myTasks.txt";
     private static Logger log = Logger.getLogger(Controller.class.getName());
     private String inputChoice;
@@ -359,8 +340,6 @@ public enum Controller {
         for (int i = 0; i < s.length; i++) {
             indexesToRemoveTasksFrom[i] = Integer.parseInt(s[i]);
         }
-
-
         return indexesToRemoveTasksFrom;
     }
 
@@ -484,8 +463,8 @@ public enum Controller {
                 String pattern = "^\\d{4}-\\d{2}-\\d{2}(\\s\\d{2}:\\d{2}(:\\d{2})?)?";
                 boolean matches = Pattern.matches(pattern, inputChoice);
                 if (!matches) {
-                    log.info("Invalid date format was inputted. " + inputChoice);
-                    throw new ParseException("Date wasn't matched with the pattern", -1);
+                    log.info("Invalid date format was entered. " + inputChoice);
+                    throw new ParseException("Date wasn't matched with the pattern", 0);
                 }
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 if (inputChoice.lastIndexOf(':') == 16) {
@@ -502,6 +481,7 @@ public enum Controller {
                 //depending on the menu, predefined statements can route to different menus, so we use above method
                 if (!routed) {
                     System.out.print("! You've entered " + message + " in invalid format, please retry.");
+                    log.info("User entered " + message + " in invalid format", ex);
                 }
             }
             if (correctInput) {
@@ -688,7 +668,8 @@ public enum Controller {
                 try {
                     interval = Integer.parseInt(inputChoice);
                     if (interval < 0) {
-                        throw new NumberFormatException("Interval cannot be less than zero.");
+                        log.info("Invalid repeat interval value in user's input. " + interval);
+                        throw new NumberFormatException("Interval cannot be less than zero." + interval);
                     }
                 } catch (NumberFormatException ex) {
                     log.info("Invalid repeat interval format in user's input. ", ex);
@@ -722,7 +703,7 @@ public enum Controller {
                 log.info("Invalid edit indexes in user's input " + ex);
                 routed = routeIfControlWord(inputChoice, Menus.EDIT_TASK_LIST, Menus.VOID, "");
                 if (!routed) {
-                    System.out.println(ex.getMessage());
+                    System.out.println("You've entered invalid task number to edit [" + inputChoice + "]. Please, retry your input.");
                     continue;
                 }
             }
@@ -750,18 +731,16 @@ public enum Controller {
      * @return index of needed task in collection to edit,
      * if it isn't out of collection bounds and
      * was parsed to int correctly.
-     * @throws NumberFormatException if {@code input} was not parsed to int correctly,
-     *                               or specified parsed index is out of collection bounds
+     * @throws NumberFormatException     if {@code input} was not parsed to int correctly,
+     *                                   or specified parsed index is out of collection bounds
+     * @throws IndexOutOfBoundsException if {@code input} exceeds {@code taskList} size
      */
-    private int checkForValidEditIndex(String input) throws NumberFormatException {
+    private int checkForValidEditIndex(String input) throws NumberFormatException, IndexOutOfBoundsException {
         int index;
-        try {
-            index = Integer.parseInt(input);
-        } catch (NumberFormatException ex) {
-            throw new NumberFormatException("\nYou've entered invalid task number [" + input + "]. Please, retry your input.");
-        }
+        index = Integer.parseInt(input);
 
         if (index < 1 || index > taskList.size()) {
+            log.info("Invalid edit indexes in user's input. " + index);
             throw new IndexOutOfBoundsException("\nYour task number is out of bounds [" + input + "]. Please, retry your input.");
         } else {
             return index;
@@ -1154,5 +1133,24 @@ public enum Controller {
             "menu", "Printing current menu one more time.",
             "-----------------------------------------------------\n");
         taskListMain();
+    }
+
+    /**
+     * Enum that represents different menus, available to user,
+     * used while routing between one another.
+     */
+    private enum Menus {
+        CHOOSE_TASKLIST,
+        TASKLIST_MAIN,
+        REMOVE_TASKS,
+        EDIT_TASK_LIST,
+        EDIT_TASK_BY_INDEX,
+        EDIT_NON_REPEATED_TASK,
+        EDIT_REPEATED_TASK,
+        GET_DATE,
+        GET_TITLE,
+        CHANGE_TASK_STATE,
+        GET_REPEAT_INTERVAL,
+        VOID
     }
 }
