@@ -1,4 +1,4 @@
-package com.Kovalenko.lab1.model;
+package com.kovalenko.lab1.model;
 
 
 /**
@@ -7,5 +7,5 @@ package com.Kovalenko.lab1.model;
  * @see EmptyTaskList
  * @see FilledTaskList
  */
-public interface TaskListable {
+interface TaskListable {
 }

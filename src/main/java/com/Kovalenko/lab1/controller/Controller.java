@@ -1,6 +1,6 @@
-package com.Kovalenko.lab1.controller;
+package com.kovalenko.lab1.controller;
 
-import com.Kovalenko.lab1.model.*;
+import com.kovalenko.lab1.model.*;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -21,6 +21,25 @@ import java.util.regex.Pattern;
  */
 public enum Controller {
     INSTANCE;
+
+    /**
+     * Enum that represents different menus, available to user,
+     * used while routing between one another.
+     */
+    private enum Menus {
+        CHOOSE_TASKLIST,
+        TASKLIST_MAIN,
+        REMOVE_TASKS,
+        EDIT_TASK_LIST,
+        EDIT_TASK_BY_INDEX,
+        EDIT_NON_REPEATED_TASK,
+        EDIT_REPEATED_TASK,
+        GET_DATE,
+        GET_TITLE,
+        CHANGE_TASK_STATE,
+        GET_REPEAT_INTERVAL,
+        VOID
+    }
 
     private static final String DEFAULT_STORAGE_FILE_NAME = "out/myTasks.txt";
     private static Logger log = Logger.getLogger(Controller.class.getName());
@@ -56,7 +75,10 @@ public enum Controller {
      */
     public void run() {
         log.info("App started.");
+        showChooseTaskListMenu();
         chooseTaskList();
+        pokeNotificationsManager(true);
+        taskListMain();
     }
 
     /**
@@ -120,7 +142,6 @@ public enum Controller {
      * In case of wrong input, user will be asked to retry.
      */
     private void chooseTaskList() {
-        showChooseTaskListMenu();
         do {
             inputChoice = getTrimmedInput();
             switch (inputChoice) {
@@ -148,8 +169,7 @@ public enum Controller {
                     }
                     continue;
             }
-            pokeNotificationsManager(true);
-            taskListMain();
+            return;
         } while (true);
     }
 
@@ -225,7 +245,6 @@ public enum Controller {
                 case "1":
                     //View all tasks
                     viewTasks();
-                    showTaskListMainMenu();
                     break;
                 case "2":
                     //Add new task
@@ -251,8 +270,10 @@ public enum Controller {
                     boolean routed = routeIfControlWord(inputChoice, Menus.TASKLIST_MAIN, Menus.VOID, "");
                     if (!routed) {
                         System.out.print("Incorrect input, please retry.");
+                        continue;
                     }
             }
+            showTaskListMainMenu();
         } while (true);
     }
 
@@ -260,32 +281,25 @@ public enum Controller {
      * Method for viewing current list of tasks
      */
     private void viewTasks() {
-        checkIfEmptyCollectionThenStepOut("Nothing to view.");
+        if (taskList.size() == 0) {
+            System.out.println("\nYour list of tasks is empty at the moment. Nothing to view.");
+            return;
+        }
         System.out.println("\n----------- View menu -----------\n");
         System.out.println("List of all tasks is displayed below.\n");
         String[] collectionItems = menuItemsOutOfCollection(taskList);
         menuUtil(collectionItems);
     }
 
-    /**
-     * Method to check if collection is empty(i.e. has no task inside)
-     * {@link TaskList#size()}
-     *
-     * @param str string, used for informational message
-     * @see TaskList
-     */
-    private void checkIfEmptyCollectionThenStepOut(String str) {
-        if (taskList.size() == 0) {
-            System.out.println("\nYour list of tasks is empty at the moment. " + str);
-            taskListMain();
-        }
-    }
 
     /**
      * Method to show remove menu to user, and get indexes to further remove tasks.
      */
     private void removeTasks() {
-        checkIfEmptyCollectionThenStepOut("Nothing to remove.");
+        if (taskList.size() == 0) {
+            System.out.println("\nYour list of tasks is empty at the moment. Nothing to remove.");
+            return;
+        }
         Integer[] indexesToRemoveTasksFrom = null;
         showRemoveTasksMenu();
         do {
@@ -443,7 +457,10 @@ public enum Controller {
     private void calendar() {
         Date startDate;
         Date endDate;
-        checkIfEmptyCollectionThenStepOut("Can't create calendar");
+        if (taskList.size() == 0) {
+            System.out.println("\nYour list of tasks is empty at the moment. Can't create calendar.");
+            return;
+        }
         System.out.println("----------- Calendar menu -----------");
         boolean correctInput = true;
         do {
@@ -640,7 +657,6 @@ public enum Controller {
         }
         System.out.println("Your task was successfully added!");
         log.info("New task was added to list successfully.");
-        taskListMain();
     }
 
     /**
@@ -706,7 +722,10 @@ public enum Controller {
      * which will return him to previous menu {@link #taskListMain()}.
      */
     private void editTaskList() {
-        checkIfEmptyCollectionThenStepOut("Nothing to edit.");
+        if (taskList.size() == 0) {
+            System.out.println("\nYour list of tasks is empty at the moment. Nothing to edit.");
+            return;
+        }
         editTaskMenu();
         boolean routed = false;
         int indexToEditTask = -1;
@@ -1055,6 +1074,7 @@ public enum Controller {
                         return false;
 
                     case TASKLIST_MAIN:
+                        showChooseTaskListMenu();
                         chooseTaskList();
                         return true;
 
@@ -1148,24 +1168,5 @@ public enum Controller {
             "menu", "Printing current menu one more time.",
             "-----------------------------------------------------\n");
         taskListMain();
-    }
-
-    /**
-     * Enum that represents different menus, available to user,
-     * used while routing between one another.
-     */
-    private enum Menus {
-        CHOOSE_TASKLIST,
-        TASKLIST_MAIN,
-        REMOVE_TASKS,
-        EDIT_TASK_LIST,
-        EDIT_TASK_BY_INDEX,
-        EDIT_NON_REPEATED_TASK,
-        EDIT_REPEATED_TASK,
-        GET_DATE,
-        GET_TITLE,
-        CHANGE_TASK_STATE,
-        GET_REPEAT_INTERVAL,
-        VOID
     }
 }

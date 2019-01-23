@@ -1,6 +1,6 @@
-package com.Kovalenko.lab1;
+package com.kovalenko.lab1;
 
-import com.Kovalenko.lab1.controller.Controller;
+import com.kovalenko.lab1.controller.Controller;
 
 public class App {
 
@@ -10,7 +10,7 @@ public class App {
     }
 
 
-    public static void main(String... args) {
+    public static void main(String...args) {
          App.start();
     }
 

@@ -1,4 +1,4 @@
-package com.Kovalenko.lab1.model;
+package com.kovalenko.lab1.model;
 
 import java.io.Serializable;
 import java.util.*;

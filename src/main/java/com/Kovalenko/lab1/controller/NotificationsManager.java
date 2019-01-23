@@ -1,7 +1,7 @@
-package com.Kovalenko.lab1.controller;
+package com.kovalenko.lab1.controller;
 
-import com.Kovalenko.lab1.model.Task;
-import com.Kovalenko.lab1.model.TaskList;
+import com.kovalenko.lab1.model.Task;
+import com.kovalenko.lab1.model.TaskList;
 
 import java.util.Date;
 import java.util.HashSet;
