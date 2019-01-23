@@ -22,6 +22,25 @@ import java.util.regex.Pattern;
 public enum Controller {
     INSTANCE;
 
+    /**
+     * Enum that represents different menus, available to user,
+     * used while routing between one another.
+     */
+    private enum Menus {
+        CHOOSE_TASKLIST,
+        TASKLIST_MAIN,
+        REMOVE_TASKS,
+        EDIT_TASK_LIST,
+        EDIT_TASK_BY_INDEX,
+        EDIT_NON_REPEATED_TASK,
+        EDIT_REPEATED_TASK,
+        GET_DATE,
+        GET_TITLE,
+        CHANGE_TASK_STATE,
+        GET_REPEAT_INTERVAL,
+        VOID
+    }
+
     private static final String DEFAULT_STORAGE_FILE_NAME = "out/myTasks.txt";
     private static Logger log = Logger.getLogger(Controller.class.getName());
     private String inputChoice;
@@ -53,8 +72,12 @@ public enum Controller {
         }
     }
 
+    public static void main(String[] args) {
+        Controller.INSTANCE.run();
+    }
+
     /**
-     * Main method to start an application,
+     * Method to launch controller,
      * {@link #chooseTaskList()}
      */
     public void run() {
@@ -1124,24 +1147,5 @@ public enum Controller {
             "menu", "Printing current menu one more time.",
             "-----------------------------------------------------\n");
         taskListMain();
-    }
-
-    /**
-     * Enum that represents different menus, available to user,
-     * used while routing between one another.
-     */
-    private enum Menus {
-        CHOOSE_TASKLIST,
-        TASKLIST_MAIN,
-        REMOVE_TASKS,
-        EDIT_TASK_LIST,
-        EDIT_TASK_BY_INDEX,
-        EDIT_NON_REPEATED_TASK,
-        EDIT_REPEATED_TASK,
-        GET_DATE,
-        GET_TITLE,
-        CHANGE_TASK_STATE,
-        GET_REPEAT_INTERVAL,
-        VOID
     }
 }
