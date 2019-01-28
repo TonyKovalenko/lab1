@@ -50,12 +50,15 @@ public enum Controller {
     private String[] menuItems;
     private String[] collectionItemsAsMenu;
     private BufferedReader bufferedReader;
-
     Controller() {
         listMutated = false;
         notifier = new NotificationsManager();
         taskList = new ArrayTaskList();
         bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+    }
+
+    public static void main(String[] args) {
+        Controller.INSTANCE.run();
     }
 
     public TaskList getTaskList() {
@@ -70,10 +73,6 @@ public enum Controller {
         synchronized (this) {
             listMutated = value;
         }
-    }
-
-    public static void main(String[] args) {
-        Controller.INSTANCE.run();
     }
 
     /**
@@ -308,7 +307,6 @@ public enum Controller {
                 System.out.print(ex.getMessage());
                 log.info("Index out of bounds in user's input while removing tasks. ", ex);
             }
-
         } while (true);
     }
 
@@ -338,7 +336,6 @@ public enum Controller {
             collectionItemsAsMenu[i] = tasks.getTask(i).toString();
         }
         return collectionItemsAsMenu;
-
     }
 
     /**
@@ -490,6 +487,7 @@ public enum Controller {
                 }
                 sdf.setLenient(false);
                 actualDate = sdf.parse(inputChoice);
+                return actualDate;
             } catch (ParseException ex) {
                 //log.debug("Probable unexpected ParseException if pattern was matched. ", ex);
                 boolean routed = routeIfControlWord(inputChoice, Menus.GET_DATE, stepOutTo, message, indexIfEditing);
@@ -498,9 +496,7 @@ public enum Controller {
                     System.out.print("! You've entered " + message + " in invalid format, please retry.");
                     log.info("User entered " + message + " in invalid format", ex);
                 }
-                continue;
             }
-                return actualDate;
         } while (true);
     }
 
@@ -707,24 +703,20 @@ public enum Controller {
             return;
         }
         editTaskMenu();
-        boolean routed = false;
-        int indexToEditTask = -1;
+        boolean routed;
+        int indexToEditTask;
         do {
             inputChoice = getTrimmedInput();
             try {
                 indexToEditTask = checkForValidEditIndex(inputChoice);
+                editTaskByIndex(indexToEditTask - 1);
             } catch (NumberFormatException | IndexOutOfBoundsException ex) {
                 log.info("Invalid edit indexes in user's input " + ex);
                 routed = routeIfControlWord(inputChoice, Menus.EDIT_TASK_LIST, Menus.VOID, "");
                 if (!routed) {
                     System.out.println("You've entered invalid task number to edit [" + inputChoice + "]. Please, retry your input.");
-                    continue;
                 }
             }
-            if (!routed) {
-                editTaskByIndex(indexToEditTask - 1);
-            }
-            routed = false;
         } while (true);
     }
 
@@ -1103,12 +1095,13 @@ public enum Controller {
             notifier.join();
         } catch (InterruptedException ex) {
             log.info("Notifications manager thread was interrupted.", ex);
-        }
-        if (state) {
-            notifier = new NotificationsManager();
-            notifier.setParentController(this);
-            notifier.setPriority(Thread.MAX_PRIORITY);
-            notifier.start();
+        } finally {
+            if (state) {
+                notifier = new NotificationsManager();
+                notifier.setParentController(this);
+                notifier.setPriority(Thread.MAX_PRIORITY);
+                notifier.start();
+            }
         }
     }
 
@@ -1119,15 +1112,19 @@ public enum Controller {
         try {
             File oldTasks = new File(DEFAULT_STORAGE_FILE_NAME);
             TaskIO.writeText(taskList, oldTasks);
-            bufferedReader.close();
+            log.info("List of tasks was saved before the exit.");
+            log.info("Exiting the app.");
         } catch (IOException ex) {
-            log.error("Exception happened upon exiting the application. ", ex);
+            log.error("Exception happened while saving tasks before the exit. ", ex);
+        } finally {
+            try {
+                bufferedReader.close();
+            } catch (IOException ex) {
+                log.error("Exception happened while closing bufferedReader before the exit. ", ex);
+            }
+            System.exit(0);
         }
-        log.info("List of tasks was saved before the exit.");
-        System.out.println("Saving...");
-        log.info("Exiting the app.");
-        System.out.println("Exiting...");
-        System.exit(0);
+
     }
 
     /**
@@ -1146,6 +1143,5 @@ public enum Controller {
             "back/prev", "Returning to the previous menu.",
             "menu", "Printing current menu one more time.",
             "-----------------------------------------------------\n");
-        taskListMain();
     }
 }
