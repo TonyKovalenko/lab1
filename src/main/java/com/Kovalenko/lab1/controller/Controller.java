@@ -116,7 +116,7 @@ public enum Controller {
         try {
             input = bufferedReader.readLine();
         } catch (IOException e) {
-            log.fatal("Error happened while reading from System.in" + e);
+            log.error("Error happened while reading from System.in" + e);
         }
         return input.trim().toLowerCase();
     }
@@ -194,7 +194,7 @@ public enum Controller {
                 File defaultStorage = new File(DEFAULT_STORAGE_FILE_NAME);
                 defaultStorage.createNewFile();
             } catch (IOException ioe) {
-                log.fatal("Exception while creating new empty default storage file. ", ioe);
+                log.error("Exception while creating new empty default storage file. ", ioe);
             }
             System.out.println("! Seems like the content of file is corrupted or it is missing, "
                                    + "so new empty file was created and list of tasks is now empty");
@@ -301,11 +301,11 @@ public enum Controller {
                 boolean routed = routeIfControlWord(inputChoice, Menus.REMOVE_TASKS, Menus.VOID, "");
                 if (!routed) {
                     System.out.print("Incorrect input, please retry.");
-                    log.info("Invalid index in user's input while removing tasks", ex);
+                    log.error("Invalid index in user's input while removing tasks", ex);
                 }
             } catch (IndexOutOfBoundsException ex) {
                 System.out.print(ex.getMessage());
-                log.info("Index out of bounds in user's input while removing tasks. ", ex);
+                log.error("Index out of bounds in user's input while removing tasks. ", ex);
             }
         } while (true);
     }
@@ -441,15 +441,13 @@ public enum Controller {
             return;
         }
         System.out.println("----------- Calendar menu -----------");
-        boolean correctInput = true;
         do {
             startDate = getDateOrStepOutTo(Menus.TASKLIST_MAIN, "START date for calendar");
             endDate = getDateOrStepOutTo(Menus.TASKLIST_MAIN, "END date for calendar");
             if (endDate.before(startDate)) {
-                correctInput = false;
                 System.out.println("! END date [" + endDate + "] should be after START [" + startDate + "] date, please retry your input.");
             }
-        } while (!correctInput);
+        } while (endDate.before(startDate));
         renderCalendar(startDate, endDate);
         log.info("User successfully rendered calendar for specified dates.");
     }
@@ -476,8 +474,9 @@ public enum Controller {
                 String pattern = "^\\d{4}-\\d{2}-\\d{2}(\\s\\d{2}:\\d{2}(:\\d{2})?)?";
                 boolean matches = Pattern.matches(pattern, inputChoice);
                 if (!matches) {
-                    log.info("Invalid date format was entered. " + inputChoice);
-                    throw new ParseException("Date wasn't matched with the pattern", 0);
+                    System.out.print("! You've entered " + message + " in invalid format, please retry.");
+                    log.error("Invalid date format was entered. " + inputChoice);
+                    continue;
                 }
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 if (inputChoice.lastIndexOf(':') == 16) {
@@ -494,7 +493,7 @@ public enum Controller {
                 //depending on the menu, predefined statements can route to different menus, so we use above method
                 if (!routed) {
                     System.out.print("! You've entered " + message + " in invalid format, please retry.");
-                    log.info("User entered " + message + " in invalid format", ex);
+                    log.error("User entered " + message + " in invalid format", ex);
                 }
             }
         } while (true);
@@ -517,6 +516,7 @@ public enum Controller {
             switch (inputChoice) {
                 case "":
                     System.out.println("\n ! You might want to change task title, as it is empty or consists of spaces only.");
+                    log.error("Invalid title was entered [" + inputChoice + "]");
                     break;
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.GET_TITLE, stepOutTo, message, indexIfEditing);
@@ -552,7 +552,6 @@ public enum Controller {
                 System.out.println(" ------------------------------------\n");
             });
         }
-        taskListMain();
     }
 
     /**
@@ -659,6 +658,7 @@ public enum Controller {
                     boolean routed = routeIfControlWord(inputChoice, Menus.CHANGE_TASK_STATE, Menus.VOID, str);
                     if (!routed) {
                         System.out.print("Wrong input, please retry.");
+                        log.error("Invalid task state was specified [" + inputChoice + "]");
                     }
             }
         } while (true);
@@ -684,7 +684,7 @@ public enum Controller {
                     interval = Integer.parseInt(inputChoice);
                     return interval * 60;
                 } catch (NumberFormatException ex) {
-                    log.info("Invalid repeat interval format in user's input. ", ex);
+                    log.error("Invalid repeat interval format in user's input. ", ex);
                     System.out.println("You've entered repeat interval in wrong format, please retry.");
                 }
             }
@@ -711,7 +711,7 @@ public enum Controller {
                 indexToEditTask = checkForValidEditIndex(inputChoice);
                 editTaskByIndex(indexToEditTask - 1);
             } catch (NumberFormatException | IndexOutOfBoundsException ex) {
-                log.info("Invalid edit indexes in user's input " + ex);
+                log.error("Invalid edit indexes in user's input [" + ex + "]");
                 routed = routeIfControlWord(inputChoice, Menus.EDIT_TASK_LIST, Menus.VOID, "");
                 if (!routed) {
                     System.out.println("You've entered invalid task number to edit [" + inputChoice + "]. Please, retry your input.");
@@ -746,7 +746,7 @@ public enum Controller {
         index = Integer.parseInt(input);
 
         if (index < 1 || index > taskList.size()) {
-            log.info("Invalid edit indexes in user's input. " + index);
+            log.error("Invalid edit indexes in user's input. [" + index + "]");
             throw new IndexOutOfBoundsException("\nYour task number is out of bounds [" + input + "]. Please, retry your input.");
         } else {
             return index;
@@ -808,6 +808,7 @@ public enum Controller {
                     do {
                         newRepeatInterval = getRepeatIntervalOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
                         if(newRepeatInterval <= 0) {
+                            log.error("Invalid repeat interval was specified [" + newRepeatInterval + "]");
                             System.out.println("\n! Repeat interval [" + newRepeatInterval/60 + "] should be more than 0, please retry your input.");
                         }
                     } while (newRepeatInterval <= 0);
@@ -837,6 +838,7 @@ public enum Controller {
                 default:
                     boolean routed = routeIfControlWord(inputChoice, Menus.EDIT_REPEATED_TASK, Menus.VOID, "", index);
                     if (!routed) {
+                        log.error("Incorrect input was detected while editing repeated task [" + inputChoice + "]");
                         System.out.println("Incorrect input, please retry.");
                         continue;
                     }
@@ -878,6 +880,7 @@ public enum Controller {
             newTaskStart = getDateOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "START date for your task", index);
             newTaskEnd = getDateOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "END date for your task", index);
             if (newTaskStart.after(newTaskEnd)) {
+                log.error("End date + [" + newTaskEnd + "] was after START date [" + newTaskStart + "] while editing times");
                 System.out.println("\n! END date [" + newTaskEnd + "] should be after START date [" + newTaskStart + "], please retry your input.");
             }
         } while (newTaskStart.after(newTaskEnd));
@@ -934,6 +937,7 @@ public enum Controller {
                     do {
                         newRepeatInterval = getRepeatIntervalOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
                         if(newRepeatInterval <= 0) {
+                            log.error("Invalid repeat interval was specified [ " + newRepeatInterval + " ]");
                             System.out.println("\n! Repeat interval [" + newRepeatInterval/60 + "] should be more than 0, please retry your input.");
                         }
                     } while (newRepeatInterval <= 0);
