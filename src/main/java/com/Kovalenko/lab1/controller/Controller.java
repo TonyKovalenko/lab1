@@ -615,7 +615,12 @@ public enum Controller {
                     System.out.println("\n! END date [" + taskEnd + "] should be after START date [" + taskStart + "], please retry your input.");
                 }
             } while (taskStart.after(taskEnd));
-            taskRepeatInterval = getRepeatIntervalOrStepOutTo(Menus.TASKLIST_MAIN, "a");
+            do {
+                taskRepeatInterval = getRepeatIntervalOrStepOutTo(Menus.TASKLIST_MAIN, "a");
+                if(taskRepeatInterval <= 0) {
+                    System.out.println("\n! Repeat interval [" + taskRepeatInterval/60 + "] should be more than 0, please retry your input.");
+                }
+            } while (taskRepeatInterval <= 0);
         } else {
             taskTime = getDateOrStepOutTo(Menus.TASKLIST_MAIN, "date for your task");
         }
@@ -668,7 +673,7 @@ public enum Controller {
      * @param indexIfEditing in case we use this method in edit menu, we need to provide index of task to edit, when we step out
      * @return parsed correct int value as repeat interval
      */
-    private int getRepeatIntervalOrStepOutTo(Menus stepOutTo, String message, int... indexIfEditing) {
+    private int getRepeatIntervalOrStepOutTo(Menus stepOutTo, String message, int...indexIfEditing) {
         System.out.print("\nPlease enter " + message + " repeat interval for your task in MINUTES\n");
         int interval;
         do {
@@ -677,16 +682,11 @@ public enum Controller {
             if (!routed) {
                 try {
                     interval = Integer.parseInt(inputChoice);
-                    if (interval < 0) {
-                        log.info("Invalid repeat interval value in user's input. " + interval);
-                        throw new NumberFormatException("Interval cannot be less than zero." + interval);
-                    }
+                    return interval * 60;
                 } catch (NumberFormatException ex) {
                     log.info("Invalid repeat interval format in user's input. ", ex);
                     System.out.println("You've entered repeat interval in wrong format, please retry.");
-                    continue;
                 }
-                return interval * 60;
             }
         } while (true);
     }
@@ -804,7 +804,13 @@ public enum Controller {
                     log.info("Task times was edited successfully.");
                     break;
                 case "3": //Change repeat interval
-                    int newRepeatInterval = getRepeatIntervalOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
+                    int newRepeatInterval;
+                    do {
+                        newRepeatInterval = getRepeatIntervalOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
+                        if(newRepeatInterval <= 0) {
+                            System.out.println("\n! Repeat interval [" + newRepeatInterval/60 + "] should be more than 0, please retry your input.");
+                        }
+                    } while (newRepeatInterval <= 0);
                     synchronized (this) {
                         editedTask.setRepeatInterval(newRepeatInterval);
                         setListMutated(true);
@@ -924,8 +930,14 @@ public enum Controller {
                     log.info("Task state was edited successfully.");
                     break;
                 case "4": //Make task repeatable
+                    int newRepeatInterval;
+                    do {
+                        newRepeatInterval = getRepeatIntervalOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
+                        if(newRepeatInterval <= 0) {
+                            System.out.println("\n! Repeat interval [" + newRepeatInterval/60 + "] should be more than 0, please retry your input.");
+                        }
+                    } while (newRepeatInterval <= 0);
                     synchronized (this) {
-                        int newRepeatInterval = getRepeatIntervalOrStepOutTo(Menus.EDIT_TASK_BY_INDEX, "new", index);
                         editedTask.setRepeatInterval(newRepeatInterval);
                         editStartAndEndTimes(editedTask, index);
                         setListMutated(true);
